@@ -1,0 +1,22 @@
+{
+  "expo": {
+    "name": "Body is Diet",
+    "slug": "body-is-diet",
+    "version": "1.0.0",
+    "scheme": "bodyisdiet",
+    "web": {
+      "bundler": "metro"
+    },
+    "orientation": "portrait",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.bodyisdiet.app"
+    },
+    "android": {
+      "package": "com.bodyisdiet.app"
+    },
+    "plugins": [
+      "expo-router"
+    ]
+  }
+}
