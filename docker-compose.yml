@@ -1,0 +1,36 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: body-is-diet-api
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      # Persist the SQLite database outside the container
+      - db_data:/data
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: file:/data/prod.db
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-change_me_access_secret}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-change_me_refresh_secret}
+      JWT_ACCESS_EXPIRY: ${JWT_ACCESS_EXPIRY:-15m}
+      JWT_REFRESH_EXPIRY: ${JWT_REFRESH_EXPIRY:-7d}
+      SMTP_HOST: ${SMTP_HOST:-smtp.ethereal.email}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      EMAIL_FROM: ${EMAIL_FROM:-"Body is Diet <noreply@bodyisdiet.com>"}
+      CLIENT_URL: ${CLIENT_URL:-http://localhost:8081}
+    healthcheck:
+      test: [ "CMD", "wget", "-qO-", "http://localhost:3000/health" ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  db_data:
+    driver: local

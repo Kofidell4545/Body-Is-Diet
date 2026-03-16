@@ -1,0 +1,12 @@
+# Docker Compose override for local development
+# Run with: docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+services:
+  backend:
+    build:
+      target: builder # Use the build stage (includes dev deps + ts-node-dev)
+    volumes:
+      - ./backend/src:/app/src # Mount source for hot reload
+      - db_data:/data
+    environment:
+      NODE_ENV: development
+    command: npm run dev

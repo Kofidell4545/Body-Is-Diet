@@ -1,106 +1,109 @@
-
-
 # 📱 Diet is Body 
 🚀 *AI-Powered Meal Planner for Ghanaian Fitness Enthusiasts*  
 
 ---
 
-## **📌 Project Overview**  
-**Diet is Body** is a mobile app designed to help **Ghanaian bodybuilders and fitness enthusiasts** create personalized meal plans using **locally available foods**. The app uses **AI** to generate a **weekly meal plan** with three meals per day, adapting to users' fitness goals while ensuring affordability and cultural relevance.  
+## **📌 Core Goal & Vision**  
+**Diet is Body** is a mobile application purpose-built to help **Ghanaian bodybuilders and fitness enthusiasts** create personalized meal plans using **locally available foods**. 
 
-### **🔑 Key Features**  
-✅ **AI-Powered Weekly Meal Planning** – Generates a full **week’s meal plan** based on **Ghanaian foods**.  
-✅ **Favorite Meal Adaptation** – Users can input their **favorite meals**, and AI will create **a healthier version**.  
-✅ **Shopping List Generator** – Converts meal plans into an **easy-to-follow grocery shopping list**.  
-✅ **Customizable Meal Plans** – Adjust meals based on **fitness goals, dietary preferences, and portion sizes**.  
-✅ **Offline Access** – Meal plans and shopping lists are available **without an internet connection**.  
-
----
-
-## **🛠️ Tech Stack**  
-- **Frontend:** React Native (for iOS & Android)  
-- **Backend:** Firebase (for user authentication & database)  
-- **AI/ML:** Python (TensorFlow) for **meal planning & nutrition analysis**  
+The core goal of this build is to provide a highly performant, culturally relevant fitness platform where users can:
+- Generate a full **week’s meal plan** based on Ghanaian ingredients.
+- Adapt their **favorite meals** into healthier, macro-friendly versions.
+- Automatically generate a **grocery shopping list**.
+- Customize plans based on exact **fitness goals, dietary restrictions, and portion sizes**.
+- Access their plans **offline**.
 
 ---
 
-## **🚀 Getting Started (For Developers)**  
+## **🏗 Architecture & Current Build State**
 
-### **1️⃣ Prerequisites**  
-Ensure you have the following installed:  
-- **Node.js** & **npm/yarn** (for React Native setup)  
-- **React Native CLI** (for development)  
-- **Android Studio or Xcode** (for running on devices/emulators)  
-- **Firebase CLI** (for backend setup)  
-- **Python 3.x** (for AI model development)  
+We have intentionally structured this project as a robust, decoupled **Full-Stack Application** to ensure scalability and performance, moving away from monolithic BaaS setups.
 
-### **2️⃣ Installation Steps**  
+### **1. Frontend (Mobile Client)**
+- **Framework:** React Native + Expo + Expo Router
+- **Styling & UI:** Native UI components, SafeArea context, consistent dark-mode aesthetics.
+- **Client Security:** Expo SecureStore for encrypted, on-device JWT token persistence.
+- **API Communication:** Axios with interceptor-based automatic credential rotation (refresh token flow).
 
-#### **Clone the Repository**  
+### **2. Backend (REST API)**
+- **Runtime:** Node.js + TypeScript
+- **Framework:** Express.js 
+- **Database:** SQLite (via `@databases/sqlite` pure WebAssembly driver) for local dev, swappable to PostgreSQL.
+- **Security & Validation:**
+  - Password Hashing: `bcrypt`
+  - Request Validation: `Zod` schema validation
+  - Rate Limiting & Auth: JWT-based stateless authentication 
+- **Email:** Nodemailer (currently using Ethereal for dev password-reset flows).
+
+### **3. Infrastructure (Docker)**
+The backend is fully containerized for identical local, staging, and production environments.
+- **Multi-stage `Dockerfile`** for lean production builds.
+- **`docker-compose.yml`** for one-click startup and persistent database volumes.
+- Dev-override (`docker-compose.dev.yml`) for live-reloading.
+
+---
+
+## **🔒 Implemented Core Flows (Phase 1)**
+
+Currently, the robust **Authentication Foundation** has been entirely built and verified end-to-end:
+
+1. **User Registration:** Users can sign up, generating a hashed record in the database and returning an immediate JWT pair.
+2. **Secure Login:** Validates credentials and issues an Access Token (15m expiry) and Refresh Token (7d expiry, stored in DB).
+3. **Session Management:** The frontend automatically rotates expired access tokens in the background without user interruption.
+4. **Password Recovery:** Fully functional forgot-password & reset token generation flow.
+5. **UI Completion:** Fully styled, responsive auth screens (Login, Signup, Forgot Password) built directly into the Expo layout.
+
+---
+
+## **🚀 Getting Started (Active Development)**
+
+### **1. Run the Backend API**
+You can run the backend either via Node directly or via Docker. The backend must be running for the mobile app to authenticate users.
+
+**Option A: Node**
 ```bash
-git clone https://github.com/your-username/diet-is-body.git
-cd diet-is-body
+cd backend
+npm install
+npm run dev
+# Starts on http://localhost:3000
 ```
 
-#### **Install Dependencies (React Native)**  
+**Option B: Docker**
 ```bash
-cd mobile_app
-npm install  # or yarn install
+docker compose up --build
 ```
 
-#### **Run the App on Emulator or Device**  
+### **2. Run the Mobile App**
+Ensure your backend is running first.
+
 ```bash
-npx react-native run-android  # For Android
-npx react-native run-ios  # For iOS
+cd body-is-diet
+npm install
+
+# Option A: Run in the local Xcode Simulator
+npx expo run:ios 
+
+# Option B: Run on your physical device via Expo Go app
+npx expo start
 ```
-
-#### **AI Model Setup (Python & TensorFlow)**  
-```bash
-cd ai_model
-pip install -r requirements.txt  # Install dependencies
-python train_model.py  # Train AI model
-```
+*Note: If testing on a physical device, update `API_URL` in `body-is-diet/services/api.ts` from `localhost` to your Mac's LAN IP address.*
 
 ---
 
-## **📌 Usage**  
-1️⃣ **Sign up & create a profile** – Enter your **age, weight, height, and fitness goal**.  
-2️⃣ **Select meal preferences** – Choose your **favorite Ghanaian foods** and any dietary restrictions.  
-3️⃣ **AI generates a weekly meal plan** – View **customized breakfast, lunch, and dinner** options.  
-4️⃣ **Get shopping list** – AI converts your meal plan into a **grocery shopping list**.  
-5️⃣ **Customize meals** – Swap meals or adjust portion sizes as needed.  
+## **⏭ Next Milestones / Roadmap (TigerStyle Principles)**
+Following TigerStyle (Simplicity, Orthogonality, Data Orientation, Explicitness):
 
----
+### Phase 2: User Onboarding Flow
+- **Goal Selection:** Lose Weight, Gain Muscle, Gain Weight, Maintain.
+- **Body Metrics Input:** Age, Gender, Height, Weight, Target Weight (feeds BMR/TDEE calculations).
+- **Activity Level:** Sedentary to Athlete (multiplier for TDEE).
+- **Food Preferences:** Select Proteins, Carbs, Veggies, and avoidances (e.g., Rice, Yam, Banku, Chicken, Fish).
+- **Favorite Meals:** Core differentiator — Waakye, Banku & Tilapia, Jollof, etc. AI adapts these.
+- **Meal Frequency:** 3, 4, or 5 meals daily.
+- **AI Processing Screen:** Loader animation while backend calculates BMR, macros, and builds the plan.
 
-## **📊 Business Model**  
-💰 **Revenue Streams:**  
-- **Freemium Model:** Basic meal plans **free**, premium features available via **subscription**.  
-- **Subscription Plans:** Monthly & annual plans for **advanced AI customization**.  
-- **Affiliate Partnerships:** Collaborations with **grocery stores, gyms, and fitness brands**.  
-
----
-
-## **📅 Roadmap**  
-✅ **Phase 1:** AI & Database Development  
-✅ **Phase 2:** Mobile App Development (React Native)  
-🔜 **Phase 3:** Beta Testing & User Feedback  
-🔜 **Phase 4:** Public Launch on **Google Play & App Store**  
-
----
-
-## **🤝 Contributing**  
-Want to contribute? Fork the repo, make your changes, and submit a **pull request (PR)**.  
-
----
-
-## **📩 Contact & Support**  
-📧 Email: [davidnhyiraba8@gmail.com]  
-🌐 Website: [Coming Soon]  
-📱 Social Media: [@DietIsBody](#)  
-
----
-
-🚀 **Transform your fitness journey with the power of AI & Ghanaian nutrition!** 🇬🇭🔥  
-
----
-
+### Phase 3: Core Dashboard & Features
+- **Meal Plan Result (Main Dashboard):** Weekly tab layout (Mon-Sun). Shows meals (Breakfast, Lunch, Dinner) and daily macro summary.
+- **Shopping List:** Aggregated ingredients based on the weekly plan.
+- **Meal Swap:** User can swap a meal (e.g., Waakye to Jollof) while keeping macros balanced.
+- **Profile Screen:** Edit metrics, goals, preferences, and trigger recalculation.

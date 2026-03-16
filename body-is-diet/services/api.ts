@@ -1,0 +1,151 @@
+import axios, { AxiosInstance, AxiosError } from 'axios';
+import * as SecureStore from 'expo-secure-store';
+import { AuthResponse, AuthTokens, UserPreferences } from '../types';
+
+// ── Config ────────────────────────────────────────────────────────────────────
+// Change this to your computer's LAN IP when testing on a physical device
+// e.g. 'http://192.168.1.10:3000'
+export const API_URL = 'http://localhost:3000';
+
+const KEYS = {
+    ACCESS_TOKEN: 'bid_access_token',
+    REFRESH_TOKEN: 'bid_refresh_token',
+} as const;
+
+// ── Token helpers ─────────────────────────────────────────────────────────────
+export async function saveTokens(tokens: AuthTokens) {
+    await SecureStore.setItemAsync(KEYS.ACCESS_TOKEN, tokens.accessToken);
+    await SecureStore.setItemAsync(KEYS.REFRESH_TOKEN, tokens.refreshToken);
+}
+
+export async function getAccessToken(): Promise<string | null> {
+    return SecureStore.getItemAsync(KEYS.ACCESS_TOKEN);
+}
+
+export async function getRefreshToken(): Promise<string | null> {
+    return SecureStore.getItemAsync(KEYS.REFRESH_TOKEN);
+}
+
+export async function clearTokens() {
+    await SecureStore.deleteItemAsync(KEYS.ACCESS_TOKEN);
+    await SecureStore.deleteItemAsync(KEYS.REFRESH_TOKEN);
+}
+
+// ── Axios instance ────────────────────────────────────────────────────────────
+const api: AxiosInstance = axios.create({
+    baseURL: `${API_URL}/api`,
+    timeout: 10000,
+    headers: { 'Content-Type': 'application/json' },
+});
+
+// Attach access token to every request
+api.interceptors.request.use(async (config) => {
+    const token = await getAccessToken();
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+});
+
+// Refresh token on 401
+let isRefreshing = false;
+let failedQueue: Array<{ resolve: (v: unknown) => void; reject: (e: unknown) => void }> = [];
+
+function processQueue(error: unknown, token: string | null) {
+    failedQueue.forEach(({ resolve, reject }) => {
+        if (error) reject(error);
+        else resolve(token);
+    });
+    failedQueue = [];
+}
+
+api.interceptors.response.use(
+    (res) => res,
+    async (error: AxiosError) => {
+        const original = error.config as typeof error.config & { _retry?: boolean };
+
+        if (error.response?.status === 401 && !original._retry) {
+            if (isRefreshing) {
+                return new Promise((resolve, reject) => {
+                    failedQueue.push({ resolve, reject });
+                }).then((token) => {
+                    if (original.headers) original.headers.Authorization = `Bearer ${token}`;
+                    return api(original);
+                });
+            }
+
+            original._retry = true;
+            isRefreshing = true;
+
+            try {
+                const refreshToken = await getRefreshToken();
+                if (!refreshToken) throw new Error('No refresh token');
+
+                const { data } = await axios.post(`${API_URL}/api/auth/refresh`, { refreshToken });
+                const tokens: AuthTokens = data.data;
+                await saveTokens(tokens);
+                processQueue(null, tokens.accessToken);
+                if (original.headers) original.headers.Authorization = `Bearer ${tokens.accessToken}`;
+                return api(original);
+            } catch (err) {
+                processQueue(err, null);
+                await clearTokens();
+                throw err;
+            } finally {
+                isRefreshing = false;
+            }
+        }
+
+        return Promise.reject(error);
+    }
+);
+
+// ── Auth API calls ────────────────────────────────────────────────────────────
+export const authApi = {
+    async register(name: string, email: string, password: string): Promise<AuthResponse> {
+        const { data } = await api.post('/auth/register', { name, email, password });
+        if (!data.success) throw new Error(data.message || 'Registration failed');
+        await saveTokens(data.data);
+        return data.data as AuthResponse;
+    },
+
+    async login(email: string, password: string): Promise<AuthResponse> {
+        const { data } = await api.post('/auth/login', { email, password });
+        if (!data.success) throw new Error(data.message || 'Login failed');
+        await saveTokens(data.data);
+        return data.data as AuthResponse;
+    },
+
+    async forgotPassword(email: string): Promise<string> {
+        const { data } = await api.post('/auth/forgot-password', { email });
+        return data.message || 'Reset link sent!';
+    },
+
+    async resetPassword(token: string, password: string): Promise<string> {
+        const { data } = await api.post('/auth/reset-password', { token, password });
+        return data.message || 'Password reset successfully';
+    },
+
+    async logout(): Promise<void> {
+        const refreshToken = await getRefreshToken();
+        try {
+            await api.post('/auth/logout', { refreshToken });
+        } finally {
+            await clearTokens();
+        }
+    },
+};
+
+// ── User API calls ────────────────────────────────────────────────────────────
+export const userApi = {
+    async getPreferences(): Promise<UserPreferences> {
+        const { data } = await api.get('/user/preferences');
+        return data as UserPreferences;
+    },
+
+    async savePreferences(preferences: UserPreferences): Promise<void> {
+        await api.post('/user/preferences', preferences);
+    }
+};
+
+export default api;

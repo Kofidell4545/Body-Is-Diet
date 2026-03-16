@@ -1,10 +1,13 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Animated } from 'react-native';
 import { router } from 'expo-router';
+import { useAuth } from '../context/AuthContext';
 
 export default function Splash() {
-    const opacity = new Animated.Value(0);
-    const scale = new Animated.Value(0.8);
+    const opacity = useRef(new Animated.Value(0)).current;
+    const scale = useRef(new Animated.Value(0.8)).current;
+    const { isAuthenticated, isLoading } = useAuth();
+    const navigated = useRef(false);
 
     useEffect(() => {
         // Fade + scale in
@@ -21,14 +24,22 @@ export default function Splash() {
                 useNativeDriver: true,
             }),
         ]).start();
+    }, [opacity, scale]);
 
-        // Auto navigate after 2.5s
+    useEffect(() => {
+        if (navigated.current || isLoading) return;
+
         const timer = setTimeout(() => {
-            router.replace('/get-started');
-        }, 2500);
+            navigated.current = true;
+            if (isAuthenticated) {
+                router.replace('/(tabs)/');
+            } else {
+                router.replace('/get-started');
+            }
+        }, 1500); // reduced slightly to feel snappier 
 
         return () => clearTimeout(timer);
-    }, []);
+    }, [isLoading, isAuthenticated]);
 
     return (
         <View style={styles.container}>

@@ -10,13 +10,19 @@
     "orientation": "portrait",
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.bodyisdiet.app"
+      "bundleIdentifier": "com.bodyisdiet.app",
+      "infoPlist": {
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": true
+        }
+      }
     },
     "android": {
       "package": "com.bodyisdiet.app"
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      "expo-secure-store"
     ]
   }
 }
