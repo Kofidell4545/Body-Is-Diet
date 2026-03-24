@@ -1,5 +1,6 @@
 import { Stack } from 'expo-router';
 import { AuthProvider } from '../context/AuthContext';
+import { MealPlanProvider } from '../context/MealPlanContext';
 
 function RootLayoutNav() {
     return (
@@ -14,7 +15,9 @@ function RootLayoutNav() {
 export default function RootLayout() {
     return (
         <AuthProvider>
-            <RootLayoutNav />
+            <MealPlanProvider>
+                <RootLayoutNav />
+            </MealPlanProvider>
         </AuthProvider>
     );
 }

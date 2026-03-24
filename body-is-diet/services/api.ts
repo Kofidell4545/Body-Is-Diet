@@ -1,6 +1,6 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
 import * as SecureStore from 'expo-secure-store';
-import { AuthResponse, AuthTokens, UserPreferences } from '../types';
+import { AuthResponse, AuthTokens, UserPreferences, WeeklyMealPlan, MealPlanItem } from '../types';
 
 // ── Config ────────────────────────────────────────────────────────────────────
 export const API_URL = 'http://localhost:3000';
@@ -158,6 +158,30 @@ export const userApi = {
 
     async savePreferences(preferences: UserPreferences): Promise<void> {
         await api.post('/user/preferences', preferences);
+    },
+};
+
+// ── Meal Plan API calls ──────────────────────────────────────────────────────
+export const mealPlanApi = {
+    async generate(weekStart?: string): Promise<WeeklyMealPlan> {
+        const { data } = await api.post('/meal-plan/generate', { week_start: weekStart });
+        return data.data as WeeklyMealPlan;
+    },
+
+    async getWeekPlan(weekStart?: string): Promise<WeeklyMealPlan> {
+        const params = weekStart ? { week_start: weekStart } : {};
+        const { data } = await api.get('/meal-plan', { params });
+        return data.data as WeeklyMealPlan;
+    },
+
+    async swapMeal(itemId: string, newFoodId?: string): Promise<MealPlanItem> {
+        const { data } = await api.post('/meal-plan/swap', { item_id: itemId, new_food_id: newFoodId });
+        return data.data as MealPlanItem;
+    },
+
+    async completeMeal(itemId: string): Promise<MealPlanItem> {
+        const { data } = await api.patch(`/meal-plan/item/${itemId}/complete`);
+        return data.data as MealPlanItem;
     },
 };
 
