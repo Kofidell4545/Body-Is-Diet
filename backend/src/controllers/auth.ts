@@ -99,9 +99,12 @@ export async function refresh(req: Request, res: Response): Promise<void> {
     }
 
     await db.query(sql`DELETE FROM refresh_tokens WHERE id = ${stored.id}`);
-    const newAccessToken = signAccessToken(payload);
-    const newRefreshToken = signRefreshToken(payload);
-    await db.query(sql`INSERT INTO refresh_tokens (id, token, user_id, expires_at) VALUES (${crypto.randomUUID()}, ${newRefreshToken}, ${payload.userId}, ${refreshExpiry()})`);
+    // Destructure only what we need — the decoded payload includes iat/exp
+    // which would conflict with the expiresIn option in jwt.sign()
+    const cleanPayload = { userId: payload.userId, email: payload.email };
+    const newAccessToken = signAccessToken(cleanPayload);
+    const newRefreshToken = signRefreshToken(cleanPayload);
+    await db.query(sql`INSERT INTO refresh_tokens (id, token, user_id, expires_at) VALUES (${crypto.randomUUID()}, ${newRefreshToken}, ${cleanPayload.userId}, ${refreshExpiry()})`);
 
     res.json({ success: true, data: { accessToken: newAccessToken, refreshToken: newRefreshToken } });
 }

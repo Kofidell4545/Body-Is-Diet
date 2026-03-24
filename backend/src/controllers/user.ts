@@ -22,7 +22,7 @@ const preferencesSchema = z.object({
 
 export const savePreferences = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-        const userId = req.user?.id;
+        const userId = req.user?.userId;
         if (!userId) {
             res.status(401).json({ message: 'Unauthorized' });
             return;
@@ -81,7 +81,7 @@ export const savePreferences = async (req: AuthRequest, res: Response): Promise<
 
 export const getPreferences = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-        const userId = req.user?.id;
+        const userId = req.user?.userId;
         if (!userId) {
             res.status(401).json({ message: 'Unauthorized' });
             return;

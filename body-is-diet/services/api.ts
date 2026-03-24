@@ -3,13 +3,12 @@ import * as SecureStore from 'expo-secure-store';
 import { AuthResponse, AuthTokens, UserPreferences } from '../types';
 
 // ── Config ────────────────────────────────────────────────────────────────────
-// Change this to your computer's LAN IP when testing on a physical device
-// e.g. 'http://192.168.1.10:3000'
 export const API_URL = 'http://localhost:3000';
 
 const KEYS = {
     ACCESS_TOKEN: 'bid_access_token',
     REFRESH_TOKEN: 'bid_refresh_token',
+    ONBOARDING_DONE: 'bid_onboarding_done',
 } as const;
 
 // ── Token helpers ─────────────────────────────────────────────────────────────
@@ -29,6 +28,20 @@ export async function getRefreshToken(): Promise<string | null> {
 export async function clearTokens() {
     await SecureStore.deleteItemAsync(KEYS.ACCESS_TOKEN);
     await SecureStore.deleteItemAsync(KEYS.REFRESH_TOKEN);
+}
+
+// ── Onboarding helpers ────────────────────────────────────────────────────────
+export async function markOnboardingComplete(): Promise<void> {
+    await SecureStore.setItemAsync(KEYS.ONBOARDING_DONE, 'true');
+}
+
+export async function getOnboardingComplete(): Promise<boolean> {
+    const val = await SecureStore.getItemAsync(KEYS.ONBOARDING_DONE);
+    return val === 'true';
+}
+
+export async function clearOnboardingStatus(): Promise<void> {
+    await SecureStore.deleteItemAsync(KEYS.ONBOARDING_DONE);
 }
 
 // ── Axios instance ────────────────────────────────────────────────────────────
@@ -145,7 +158,7 @@ export const userApi = {
 
     async savePreferences(preferences: UserPreferences): Promise<void> {
         await api.post('/user/preferences', preferences);
-    }
+    },
 };
 
 export default api;

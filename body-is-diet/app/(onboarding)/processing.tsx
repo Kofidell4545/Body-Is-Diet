@@ -4,6 +4,7 @@ import {
 import { router } from 'expo-router';
 import { useOnboarding } from '../../context/OnboardingContext';
 import { useRef, useEffect, useState } from 'react';
+import { markOnboardingComplete } from '../../services/api';
 
 const MESSAGES = [
     'Calculating your daily calories…',
@@ -20,14 +21,9 @@ export default function ProcessingScreen() {
     const [msgIndex, setMsgIndex] = useState(0);
     const [error, setError] = useState('');
 
-    // Spinning ring
     const spin = useRef(new Animated.Value(0)).current;
-    // Message fade
     const msgFade = useRef(new Animated.Value(1)).current;
-    // Overall fade-in
     const fade = useRef(new Animated.Value(0)).current;
-
-    // Outer glow pulse
     const pulse = useRef(new Animated.Value(0.6)).current;
 
     useEffect(() => {
@@ -55,12 +51,14 @@ export default function ProcessingScreen() {
             });
         }, 1600);
 
-        // Fire the actual API call
+        // Minimum display time so the animation always plays through once
+        const minDelay = new Promise<void>(res => setTimeout(res, MESSAGES.length * 1600));
+
         let done = false;
-        const minDelay = new Promise(res => setTimeout(res, MESSAGES.length * 1600));
 
         submit()
-            .then(() => Promise.all([minDelay]))
+            .then(() => markOnboardingComplete())
+            .then(() => minDelay)
             .then(() => {
                 if (!done) {
                     done = true;
@@ -81,7 +79,7 @@ export default function ProcessingScreen() {
         <SafeAreaView style={styles.safe}>
             {/* Progress — all filled */}
             <View style={styles.progressRow}>
-                {[1,2,3,4,5,6,7].map(i => (
+                {[1, 2, 3, 4, 5, 6, 7].map(i => (
                     <View key={i} style={[styles.pip, styles.pipActive]} />
                 ))}
                 <Text style={styles.stepLabel}>7 of 7</Text>
@@ -115,7 +113,10 @@ export default function ProcessingScreen() {
 
 const styles = StyleSheet.create({
     safe: { flex: 1, backgroundColor: '#0A0A0A' },
-    progressRow: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 24, paddingTop: 16, paddingBottom: 8 },
+    progressRow: {
+        flexDirection: 'row', alignItems: 'center', gap: 5,
+        paddingHorizontal: 24, paddingTop: 16, paddingBottom: 8,
+    },
     pip: { flex: 1, height: 4, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.12)' },
     pipActive: { backgroundColor: '#00E676' },
     stepLabel: { color: 'rgba(255,255,255,0.35)', fontSize: 11, fontWeight: '600', marginLeft: 4 },
@@ -127,7 +128,8 @@ const styles = StyleSheet.create({
         position: 'absolute', width: 140, height: 140, borderRadius: 70,
         backgroundColor: 'transparent',
         shadowColor: '#00E676', shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 1, shadowRadius: 30, borderWidth: 1, borderColor: 'rgba(0,230,118,0.15)',
+        shadowOpacity: 1, shadowRadius: 30,
+        borderWidth: 1, borderColor: 'rgba(0,230,118,0.15)',
     },
     spinRing: {
         position: 'absolute', width: 130, height: 130, borderRadius: 65,

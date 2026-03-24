@@ -49,7 +49,7 @@ export default function Login() {
     try {
       await authApi.login(email, password);
       signIn();
-      
+
       // Check if user has completed onboarding
       try {
         const prefs = await userApi.getPreferences();
