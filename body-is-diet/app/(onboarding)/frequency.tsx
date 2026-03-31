@@ -10,7 +10,7 @@ import { Ionicons } from '@expo/vector-icons';
 const OPTIONS: { value: number; label: string; desc: string }[] = [
     { value: 3, label: '3 meals a day', desc: 'Breakfast • Lunch • Dinner' },
     { value: 4, label: '4 meals a day', desc: 'Breakfast • Lunch • Snack • Dinner' },
-    { value: 5, label: '5 meals a day', desc: 'Breakfast • Snack • Lunch • Snack • Dinner' },
+    { value: 5, label: '2 mains + snack', desc: 'Breakfast • Dinner • Snack' },
 ];
 
 export default function FrequencyScreen() {

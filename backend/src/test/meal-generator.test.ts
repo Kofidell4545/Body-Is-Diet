@@ -32,10 +32,26 @@ describe('generateWeeklyPlan', () => {
         expect(dayItems.length).toBe(4);
     });
 
-    it('generates 5 meals per day when configured', () => {
+    it('generates 2 mains + 1 snack when meals_per_day is 5', () => {
         const items = generateWeeklyPlan({ ...prefs, meals_per_day: 5 }, targetCalories, GHANAIAN_FOODS);
         const dayItems = items.filter(i => i.day_of_week === 0);
-        expect(dayItems.length).toBe(5);
+        expect(dayItems.length).toBe(3);
+        const slots = dayItems.map(i => i.meal_slot);
+        expect(slots).toContain('breakfast');
+        expect(slots).toContain('dinner');
+        expect(slots.some(s => s.startsWith('snack'))).toBe(true);
+        // Should NOT contain lunch
+        expect(slots).not.toContain('lunch');
+    });
+
+    it('does not repeat any food within the same day', () => {
+        const items = generateWeeklyPlan(prefs, targetCalories, GHANAIAN_FOODS);
+        for (let day = 0; day < 7; day++) {
+            const dayItems = items.filter(i => i.day_of_week === day);
+            const foodIds = dayItems.map(i => i.food_id);
+            const uniqueIds = new Set(foodIds);
+            expect(uniqueIds.size).toBe(foodIds.length);
+        }
     });
 
     it('each item has required fields', () => {
@@ -85,6 +101,85 @@ describe('generateWeeklyPlan', () => {
         const names = items.map(i => i.food_name.toLowerCase());
         const hasAvoidedFood = names.some(n => n.includes('tilapia'));
         expect(hasAvoidedFood).toBe(false);
+    });
+
+    it('no food appears more than 3 times across the week', () => {
+        // Run multiple times to increase confidence since generation is randomized
+        for (let run = 0; run < 5; run++) {
+            const items = generateWeeklyPlan(prefs, targetCalories, GHANAIAN_FOODS);
+            const foodCounts = new Map<string, number>();
+            for (const item of items) {
+                foodCounts.set(item.food_id, (foodCounts.get(item.food_id) || 0) + 1);
+            }
+            for (const [foodId, count] of foodCounts.entries()) {
+                expect(count).toBeLessThanOrEqual(3);
+            }
+        }
+    });
+
+    it('daily macros are within reasonable range of implied targets', () => {
+        const items = generateWeeklyPlan(prefs, targetCalories, GHANAIAN_FOODS);
+        // Expected daily protein target: 30% of calories / 4 cal per g
+        const expectedProtein = (targetCalories * 0.30) / 4; // ~165g
+
+        for (let day = 0; day < 7; day++) {
+            const dayItems = items.filter(i => i.day_of_week === day);
+            const dayProtein = dayItems.reduce((sum, i) => sum + i.protein_g, 0);
+            // Protein within reasonable range (generous given randomized picks and 3 meals)
+            expect(dayProtein).toBeGreaterThan(expectedProtein * 0.35);
+            expect(dayProtein).toBeLessThan(expectedProtein * 1.65);
+        }
+    });
+
+    it('does not repeat the same food family within a day (e.g. no two waakye dishes)', () => {
+        // Run multiple times since generation is randomized
+        for (let run = 0; run < 10; run++) {
+            const items = generateWeeklyPlan(prefs, targetCalories, GHANAIAN_FOODS);
+            for (let day = 0; day < 7; day++) {
+                const dayItems = items.filter(i => i.day_of_week === day);
+                const names = dayItems.map(i => i.food_name.toLowerCase());
+                // Check that base ingredients don't repeat
+                // e.g. "waakye" should not appear in two food names on the same day
+                const bases = ['waakye', 'banku', 'fufu', 'kenkey', 'omotuo', 'jollof'];
+                for (const base of bases) {
+                    const count = names.filter(n => n.includes(base)).length;
+                    expect(count).toBeLessThanOrEqual(1);
+                }
+            }
+        }
+    });
+
+    it('new foods from expanded DB are in the pool', () => {
+        // New food IDs that were added in the expansion
+        const newFoodIds = [
+            'p-guinea-fowl', 'p-khebab', 'p-koobi', 'p-wele',
+            'c-tom-brown', 'c-rice-water', 'c-akasa', 'c-fante-kenkey',
+            's-abunuabunu', 's-pepper-soup',
+            'st-agushi', 'st-nkontomire',
+            'fm-ga-kenkey-full', 'fm-waakye-spaghetti', 'fm-ampesi-palaver',
+            'fm-fried-rice-chicken', 'fm-banku-groundnut', 'fm-tz-okra',
+            'sn-chinchinga', 'sn-roasted-corn', 'sn-tatale', 'sn-kaklo',
+            'sn-pineapple', 'sn-brukina', 'sn-asaana',
+            'v-kontomire', 'v-shoko',
+        ];
+
+        // Verify that at least some new food IDs exist in GHANAIAN_FOODS
+        const allFoodIds = new Set(GHANAIAN_FOODS.map(f => f.id));
+        for (const newId of newFoodIds) {
+            expect(allFoodIds.has(newId)).toBe(true);
+        }
+
+        // Generate a plan and verify at least one new food appears
+        // Run multiple times since generation is random
+        let foundNewFood = false;
+        for (let run = 0; run < 10; run++) {
+            const items = generateWeeklyPlan(prefs, targetCalories, GHANAIAN_FOODS);
+            if (items.some(item => newFoodIds.includes(item.food_id))) {
+                foundNewFood = true;
+                break;
+            }
+        }
+        expect(foundNewFood).toBe(true);
     });
 });
 

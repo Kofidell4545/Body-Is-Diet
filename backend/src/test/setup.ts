@@ -63,7 +63,12 @@ export async function createSchema(db: Db) {
             serving_size          TEXT NOT NULL,
             serving_weight_g      REAL NOT NULL,
             tags                  TEXT NOT NULL DEFAULT '[]',
-            image_url             TEXT
+            image_url             TEXT,
+            glycemic_index        REAL,
+            prep_method           TEXT,
+            region                TEXT DEFAULT '[]',
+            cost_tier             TEXT,
+            pairs_with            TEXT DEFAULT '[]'
         )
     `);
     await db.query(sql`

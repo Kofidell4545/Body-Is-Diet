@@ -77,7 +77,11 @@ api.interceptors.response.use(
     async (error: AxiosError) => {
         const original = error.config as typeof error.config & { _retry?: boolean };
 
-        if (error.response?.status === 401 && !original._retry) {
+        // Don't try to refresh tokens on auth endpoints — these are initial
+        // authentication requests where no token exists yet
+        const isAuthEndpoint = original.url?.startsWith('/auth/');
+
+        if (error.response?.status === 401 && !original._retry && !isAuthEndpoint) {
             if (isRefreshing) {
                 return new Promise((resolve, reject) => {
                     failedQueue.push({ resolve, reject });
