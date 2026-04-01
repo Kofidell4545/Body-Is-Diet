@@ -12,6 +12,7 @@
     "jest": {
         "preset": "ts-jest",
         "testEnvironment": "node",
+        "setupFiles": ["dotenv/config"],
         "testMatch": [
             "**/src/test/**/*.test.ts"
         ],
