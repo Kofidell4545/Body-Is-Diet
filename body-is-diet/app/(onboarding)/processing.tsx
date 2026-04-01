@@ -4,7 +4,7 @@ import {
 import { router } from 'expo-router';
 import { useOnboarding } from '../../context/OnboardingContext';
 import { useRef, useEffect, useState } from 'react';
-import { markOnboardingComplete } from '../../services/api';
+import { markOnboardingComplete, mealPlanApi } from '../../services/api';
 
 const MESSAGES = [
     'Calculating your daily calories…',
@@ -58,6 +58,7 @@ export default function ProcessingScreen() {
 
         submit()
             .then(() => markOnboardingComplete())
+            .then(() => mealPlanApi.generate())
             .then(() => minDelay)
             .then(() => {
                 if (!done) {

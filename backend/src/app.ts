@@ -2,6 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import authRoutes from './routes/auth';
 import userRoutes from './routes/user';
+import mealPlanRoutes from './routes/mealplan';
+import progressRoutes from './routes/progress';
 
 const app = express();
 
@@ -21,6 +23,8 @@ app.get('/health', (_req, res) => {
 
 app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
+app.use('/api/meal-plan', mealPlanRoutes);
+app.use('/api/progress', progressRoutes);
 
 // ── 404 handler ──────────────────────────────────────────────────────────────
 app.use((_req, res) => {

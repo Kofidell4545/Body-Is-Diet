@@ -48,3 +48,45 @@ export interface UserPreferences {
     favorite_meals?: string[];
     meals_per_day: number;
 }
+
+// ── Meal Plan types ─────────────────────────────────────────────────────────
+export interface MealPlanItem {
+    id: string;
+    meal_plan_id: string;
+    day_of_week: number;
+    meal_slot: string;
+    food_id: string;
+    food_name: string;
+    servings: number;
+    calories: number;
+    protein_g: number;
+    carbs_g: number;
+    fats_g: number;
+    is_completed: boolean;
+    swapped_from?: string;
+}
+
+export interface MacroTargets {
+    proteinG: number;
+    carbsG: number;
+    fatsG: number;
+}
+
+export interface WeeklyMealPlan {
+    id: string;
+    week_start: string;
+    tdee: number;
+    target_calories: number;
+    macro_targets: MacroTargets;
+    items: MealPlanItem[];
+}
+
+export interface DayPlan {
+    day_of_week: number;
+    meals: MealPlanItem[];
+    totalCalories: number;
+    totalProtein: number;
+    totalCarbs: number;
+    totalFats: number;
+    completedCalories: number;
+}

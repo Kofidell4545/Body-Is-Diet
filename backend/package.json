@@ -12,8 +12,18 @@
     "jest": {
         "preset": "ts-jest",
         "testEnvironment": "node",
-        "testMatch": ["**/src/test/**/*.test.ts"],
-        "moduleFileExtensions": ["ts", "js"]
+        "testMatch": [
+            "**/src/test/**/*.test.ts"
+        ],
+        "moduleFileExtensions": [
+            "ts",
+            "js"
+        ],
+        "collectCoverageFrom": [
+            "src/**/*.ts",
+            "!src/test/**",
+            "!src/index.ts"
+        ]
     },
     "dependencies": {
         "@databases/sqlite": "^4.0.1",
@@ -38,6 +48,7 @@
         "supertest": "^7.0.0",
         "ts-jest": "^29.1.4",
         "ts-node-dev": "^2.0.0",
-        "typescript": "^5.4.3"
+        "typescript": "^5.4.3",
+        "xlsx": "^0.18.5"
     }
 }

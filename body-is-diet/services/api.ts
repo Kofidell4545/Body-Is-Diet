@@ -1,6 +1,6 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
 import * as SecureStore from 'expo-secure-store';
-import { AuthResponse, AuthTokens, UserPreferences } from '../types';
+import { AuthResponse, AuthTokens, UserPreferences, WeeklyMealPlan, MealPlanItem } from '../types';
 
 // ── Config ────────────────────────────────────────────────────────────────────
 export const API_URL = 'http://localhost:3000';
@@ -77,7 +77,11 @@ api.interceptors.response.use(
     async (error: AxiosError) => {
         const original = error.config as typeof error.config & { _retry?: boolean };
 
-        if (error.response?.status === 401 && !original._retry) {
+        // Don't try to refresh tokens on auth endpoints — these are initial
+        // authentication requests where no token exists yet
+        const isAuthEndpoint = original.url?.startsWith('/auth/');
+
+        if (error.response?.status === 401 && !original._retry && !isAuthEndpoint) {
             if (isRefreshing) {
                 return new Promise((resolve, reject) => {
                     failedQueue.push({ resolve, reject });
@@ -158,6 +162,78 @@ export const userApi = {
 
     async savePreferences(preferences: UserPreferences): Promise<void> {
         await api.post('/user/preferences', preferences);
+    },
+};
+
+// ── Meal Plan API calls ──────────────────────────────────────────────────────
+export const mealPlanApi = {
+    async generate(weekStart?: string): Promise<WeeklyMealPlan> {
+        const { data } = await api.post('/meal-plan/generate', { week_start: weekStart });
+        return data.data as WeeklyMealPlan;
+    },
+
+    async getWeekPlan(weekStart?: string): Promise<WeeklyMealPlan> {
+        const params = weekStart ? { week_start: weekStart } : {};
+        const { data } = await api.get('/meal-plan', { params });
+        return data.data as WeeklyMealPlan;
+    },
+
+    async swapMeal(itemId: string, newFoodId?: string): Promise<MealPlanItem> {
+        const { data } = await api.post('/meal-plan/swap', { item_id: itemId, new_food_id: newFoodId });
+        return data.data as MealPlanItem;
+    },
+
+    async completeMeal(itemId: string): Promise<MealPlanItem> {
+        const { data } = await api.patch(`/meal-plan/item/${itemId}/complete`);
+        return data.data as MealPlanItem;
+    },
+};
+
+// ── Progress API calls ───────────────────────────────────────────────────────
+export const progressApi = {
+    async logWeight(weight_kg: number, body_fat_pct?: number, notes?: string) {
+        const { data } = await api.post('/progress/weight', { weight_kg, body_fat_pct, notes });
+        return data.data;
+    },
+
+    async getWeightHistory(limit = 52) {
+        const { data } = await api.get('/progress/weight/history', { params: { limit } });
+        return data.data as Array<{ id: string; weight_kg: number; body_fat_pct?: number; notes?: string; logged_at: string }>;
+    },
+
+    async getAnalysis() {
+        const { data } = await api.get('/progress/analysis');
+        return data.data as {
+            analysis: {
+                weeks_tracked: number;
+                current_weight_kg: number;
+                start_weight_kg: number;
+                total_change_kg: number;
+                weekly_rate_kg: number;
+                expected_rate_kg: number;
+                on_track: boolean;
+                status: string;
+                status_message: string;
+                recommended_adjustment_kcal: number;
+                reason: string;
+                current_target_calories: number;
+                new_target_calories: number;
+            };
+            goal_realism: {
+                is_realistic: boolean;
+                message: string;
+                realistic_weeks: number;
+            } | null;
+            base_tdee: number;
+            macro_targets: { proteinG: number; carbsG: number; fatsG: number };
+            logs_count: number;
+        };
+    },
+
+    async getWeeklySummary(weekStart?: string) {
+        const params = weekStart ? { week_start: weekStart } : {};
+        const { data } = await api.get('/progress/weekly-summary', { params });
+        return data.data;
     },
 };
 

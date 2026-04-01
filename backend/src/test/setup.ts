@@ -51,10 +51,118 @@ export async function createSchema(db: Db) {
             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
         )
     `);
-}
+    await db.query(sql`
+        CREATE TABLE IF NOT EXISTS foods (
+            id                    TEXT PRIMARY KEY,
+            name                  TEXT NOT NULL,
+            category              TEXT NOT NULL,
+            calories_per_serving  REAL NOT NULL,
+            protein_g             REAL NOT NULL,
+            carbs_g               REAL NOT NULL,
+            fats_g                REAL NOT NULL,
+            serving_size          TEXT NOT NULL,
+            serving_weight_g      REAL NOT NULL,
+            tags                  TEXT NOT NULL DEFAULT '[]',
+            image_url             TEXT,
+            glycemic_index        REAL,
+            prep_method           TEXT,
+            region                TEXT DEFAULT '[]',
+            cost_tier             TEXT,
+            pairs_with            TEXT DEFAULT '[]'
+        )
+    `);
+    await db.query(sql`
+        CREATE TABLE IF NOT EXISTS meal_plans (
+            id                TEXT PRIMARY KEY,
+            user_id           TEXT NOT NULL,
+            week_start        TEXT NOT NULL,
+            tdee              REAL NOT NULL,
+            target_calories   REAL NOT NULL,
+            created_at        TEXT NOT NULL DEFAULT (datetime('now')),
+            updated_at        TEXT NOT NULL DEFAULT (datetime('now')),
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+            UNIQUE (user_id, week_start)
+        )
+    `);
+    await db.query(sql`
+        CREATE TABLE IF NOT EXISTS meal_plan_items (
+            id              TEXT PRIMARY KEY,
+            meal_plan_id    TEXT NOT NULL,
+            day_of_week     INTEGER NOT NULL,
+            meal_slot       TEXT NOT NULL,
+            food_id         TEXT NOT NULL,
+            food_name       TEXT NOT NULL,
+            servings        REAL NOT NULL DEFAULT 1,
+            calories        REAL NOT NULL,
+            protein_g       REAL NOT NULL,
+            carbs_g         REAL NOT NULL,
+            fats_g          REAL NOT NULL,
+            is_completed    INTEGER NOT NULL DEFAULT 0,
+            swapped_from    TEXT,
+            FOREIGN KEY (meal_plan_id) REFERENCES meal_plans(id) ON DELETE CASCADE,
+            FOREIGN KEY (food_id) REFERENCES foods(id)
+        )
+    `);
+
+    // Weight logs — user progress tracking
+    await db.query(sql`
+        CREATE TABLE IF NOT EXISTS weight_logs (
+            id           TEXT PRIMARY KEY,
+            user_id      TEXT NOT NULL,
+            weight_kg    REAL NOT NULL,
+            body_fat_pct REAL,
+            notes        TEXT,
+            logged_at    TEXT NOT NULL DEFAULT (datetime('now')),
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        )
+    `);
+
+    // Adaptive calorie adjustments
+    await db.query(sql`
+        CREATE TABLE IF NOT EXISTS calorie_adjustments (
+            id                 TEXT PRIMARY KEY,
+            user_id            TEXT NOT NULL,
+            week_start         TEXT NOT NULL,
+            base_tdee          REAL NOT NULL,
+            adjustment_kcal    REAL NOT NULL DEFAULT 0,
+            adjusted_target    REAL NOT NULL,
+            reason             TEXT,
+            weight_start_kg    REAL,
+            weight_end_kg      REAL,
+            expected_change_kg REAL,
+            actual_change_kg   REAL,
+            created_at         TEXT NOT NULL DEFAULT (datetime('now')),
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+            UNIQUE (user_id, week_start)
+        )
+    `);
+} // end createSchema
 
 export async function clearTables(db: Db) {
+    await db.query(sql`DELETE FROM weight_logs`);
+    await db.query(sql`DELETE FROM calorie_adjustments`);
+    await db.query(sql`DELETE FROM meal_plan_items`);
+    await db.query(sql`DELETE FROM meal_plans`);
+    await db.query(sql`DELETE FROM foods`);
     await db.query(sql`DELETE FROM user_preferences`);
     await db.query(sql`DELETE FROM refresh_tokens`);
     await db.query(sql`DELETE FROM users`);
 }
+
+/** Shared test data */
+export const TEST_USER = { name: 'Kofi Test', email: 'kofi@example.com', password: 'secure123' };
+
+export const TEST_PREFS = {
+    goal: 'gain_muscle' as const,
+    age: 24,
+    gender: 'male' as const,
+    height_cm: 178,
+    weight_kg: 72,
+    target_weight_kg: 80,
+    activity_level: 'moderate' as const,
+    proteins: ['Chicken', 'Fish'],
+    carbs: ['Rice', 'Yam'],
+    avoid_foods: [],
+    favorite_meals: ['Jollof Rice', 'Waakye'],
+    meals_per_day: 3,
+};
