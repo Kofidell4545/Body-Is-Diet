@@ -2,6 +2,7 @@ import axios, { AxiosInstance, AxiosError } from 'axios';
 import * as SecureStore from 'expo-secure-store';
 import { AuthResponse, AuthTokens, UserPreferences, WeeklyMealPlan, MealPlanItem } from '../types';
 
+
 // ── Config ────────────────────────────────────────────────────────────────────
 export const API_URL = 'http://localhost:3000';
 
@@ -9,6 +10,7 @@ const KEYS = {
     ACCESS_TOKEN: 'bid_access_token',
     REFRESH_TOKEN: 'bid_refresh_token',
     ONBOARDING_DONE: 'bid_onboarding_done',
+    USER_NAME: 'bid_user_name',
 } as const;
 
 // ── Token helpers ─────────────────────────────────────────────────────────────
@@ -28,6 +30,14 @@ export async function getRefreshToken(): Promise<string | null> {
 export async function clearTokens() {
     await SecureStore.deleteItemAsync(KEYS.ACCESS_TOKEN);
     await SecureStore.deleteItemAsync(KEYS.REFRESH_TOKEN);
+}
+
+export async function saveUserName(name: string): Promise<void> {
+    await SecureStore.setItemAsync(KEYS.USER_NAME, name);
+}
+
+export async function getUserName(): Promise<string | null> {
+    return SecureStore.getItemAsync(KEYS.USER_NAME);
 }
 
 // ── Onboarding helpers ────────────────────────────────────────────────────────
@@ -123,6 +133,7 @@ export const authApi = {
         const { data } = await api.post('/auth/register', { name, email, password });
         if (!data.success) throw new Error(data.message || 'Registration failed');
         await saveTokens(data.data);
+        if (data.data.user?.name) await saveUserName(data.data.user.name);
         return data.data as AuthResponse;
     },
 
@@ -130,6 +141,7 @@ export const authApi = {
         const { data } = await api.post('/auth/login', { email, password });
         if (!data.success) throw new Error(data.message || 'Login failed');
         await saveTokens(data.data);
+        if (data.data.user?.name) await saveUserName(data.data.user.name);
         return data.data as AuthResponse;
     },
 
@@ -149,6 +161,7 @@ export const authApi = {
             await api.post('/auth/logout', { refreshToken });
         } finally {
             await clearTokens();
+            await SecureStore.deleteItemAsync(KEYS.USER_NAME);
         }
     },
 };
