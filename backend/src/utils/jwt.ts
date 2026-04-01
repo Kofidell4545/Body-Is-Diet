@@ -6,8 +6,8 @@ const REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
 
 if (!ACCESS_SECRET || !REFRESH_SECRET) {
   throw new Error(
-    '❌  JWT_ACCESS_SECRET and JWT_REFRESH_SECRET must be set in your environment.\n' +
-    '   Run: node -e "console.log(require(\'crypto\').randomBytes(64).toString(\'hex\'))" to generate each secret.'
+    'JWT_ACCESS_SECRET and JWT_REFRESH_SECRET must be set in your environment.\n' +
+    'Run: node -e "console.log(require(\'crypto\').randomBytes(64).toString(\'hex\'))" to generate each secret.'
   );
 }
 const ACCESS_EXPIRY = (process.env.JWT_ACCESS_EXPIRY || '15m') as SignOptions['expiresIn'];

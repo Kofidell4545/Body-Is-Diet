@@ -3,6 +3,7 @@ import {
     ActivityIndicator, Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useRef, useState } from 'react';
 import { useMealPlan } from '../../context/MealPlanContext';
 import { useAuth } from '../../context/AuthContext';
@@ -12,6 +13,7 @@ import MealCard from '../../components/MealCard';
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function getGreeting(): string {
     const h = new Date().getHours();
+    if (h < 5)  return 'Up late';
     if (h < 12) return 'Good morning';
     if (h < 17) return 'Good afternoon';
     return 'Good evening';
@@ -24,12 +26,12 @@ function getFirstName(fullName: string | null): string {
 
 // ─── Animated cycling button ──────────────────────────────────────────────────
 const IDLE_PHRASES = [
-    'Craft my plate 🍽️',
-    'Nourish my week 🌿',
-    'Build my meals 🥘',
-    'Balance my macros 💪',
-    'Plan my nutrition 🥗',
-    'Fuel my goals ⚡',
+    'Craft my plate',
+    'Nourish my week',
+    'Build my meals',
+    'Balance my macros',
+    'Plan my nutrition',
+    'Fuel my goals',
 ];
 
 const WORKING_PHRASES = [
@@ -47,13 +49,11 @@ function CyclingPlanButton({ onPress, isGenerating }: { onPress: () => void; isG
     const phrases = isGenerating ? WORKING_PHRASES : IDLE_PHRASES;
 
     useEffect(() => {
-        // Reset to first phrase when mode switches
         setPhraseIdx(0);
     }, [isGenerating]);
 
     useEffect(() => {
         const interval = setInterval(() => {
-            // Fade out → swap text → fade in
             Animated.timing(fade, { toValue: 0, duration: 220, useNativeDriver: true }).start(() => {
                 setPhraseIdx(i => (i + 1) % phrases.length);
                 Animated.timing(fade, { toValue: 1, duration: 300, useNativeDriver: true }).start();
@@ -70,9 +70,10 @@ function CyclingPlanButton({ onPress, isGenerating }: { onPress: () => void; isG
             activeOpacity={0.85}
             disabled={isGenerating}
         >
-            {isGenerating && (
-                <ActivityIndicator color="#000" size="small" style={{ marginRight: 8 }} />
-            )}
+            {isGenerating
+                ? <ActivityIndicator color="#000" size="small" style={{ marginRight: 8 }} />
+                : <Ionicons name="nutrition-outline" size={18} color="#000" style={{ marginRight: 8 }} />
+            }
             <Animated.Text style={[styles.generateBtnText, { opacity: fade }]}>
                 {phrases[phraseIdx]}
             </Animated.Text>
@@ -108,15 +109,14 @@ export default function Home() {
 
                 {/* ── Header ── */}
                 <View style={styles.header}>
-                    <View>
-                        <Text style={styles.greeting}>
-                            {getGreeting()}{firstName ? `, ${firstName}` : ''} 👋
+                    <View style={styles.headerLeft}>
+                        <Text style={styles.greeting}>{getGreeting()}</Text>
+                        <Text style={styles.title} numberOfLines={1}>
+                            {firstName || 'Welcome'}
                         </Text>
-                        <Text style={styles.title}>Your Dashboard</Text>
                     </View>
-                    {/* Calorie streak dot */}
-                    <View style={styles.streakBadge}>
-                        <Text style={styles.streakEmoji}>🔥</Text>
+                    <View style={styles.avatarBadge}>
+                        <Ionicons name="flame" size={20} color="#00E676" />
                     </View>
                 </View>
 
@@ -131,6 +131,7 @@ export default function Home() {
                 {/* ── Error ── */}
                 {error && (
                     <View style={styles.errorCard}>
+                        <Ionicons name="alert-circle-outline" size={16} color="#FF5252" style={{ marginRight: 8 }} />
                         <Text style={styles.errorText}>{error}</Text>
                     </View>
                 )}
@@ -138,7 +139,9 @@ export default function Home() {
                 {/* ── Empty state ── */}
                 {!isLoading && !weekPlan && (
                     <View style={styles.emptyState}>
-                        <Text style={styles.emptyIcon}>🥗</Text>
+                        <View style={styles.emptyIconWrap}>
+                            <Ionicons name="restaurant-outline" size={40} color="#00E676" />
+                        </View>
                         <Text style={styles.emptyTitle}>No Meal Plan Yet</Text>
                         <Text style={styles.emptyText}>
                             Get a personalised weekly menu built around Ghanaian foods and your goals.
@@ -185,35 +188,49 @@ const styles = StyleSheet.create({
     header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        marginBottom: 24,
+        alignItems: 'center',
+        marginBottom: 28,
     },
-    greeting: { fontSize: 15, color: '#888', marginBottom: 4 },
-    title: { fontSize: 32, fontWeight: '800', color: '#FFF', letterSpacing: -0.5 },
-    streakBadge: {
-        width: 44,
-        height: 44,
-        borderRadius: 22,
-        backgroundColor: 'rgba(255,255,255,0.05)',
+    headerLeft: { flex: 1, marginRight: 12 },
+    greeting: {
+        fontSize: 13,
+        fontWeight: '500',
+        color: 'rgba(255,255,255,0.35)',
+        letterSpacing: 0.4,
+        textTransform: 'uppercase',
+        marginBottom: 4,
+    },
+    title: {
+        fontSize: 34,
+        fontWeight: '800',
+        color: '#FFF',
+        letterSpacing: -0.8,
+    },
+    avatarBadge: {
+        width: 46,
+        height: 46,
+        borderRadius: 23,
+        backgroundColor: 'rgba(0,230,118,0.08)',
         borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.08)',
+        borderColor: 'rgba(0,230,118,0.20)',
         alignItems: 'center',
         justifyContent: 'center',
     },
-    streakEmoji: { fontSize: 20 },
 
     loadingWrap: { alignItems: 'center', paddingVertical: 60 },
     loadingText: { color: '#555', marginTop: 12, fontSize: 14 },
 
     errorCard: {
+        flexDirection: 'row',
+        alignItems: 'center',
         backgroundColor: 'rgba(255,82,82,0.08)',
         borderRadius: 14,
-        padding: 16,
+        padding: 14,
         marginBottom: 16,
         borderWidth: 1,
         borderColor: 'rgba(255,82,82,0.18)',
     },
-    errorText: { color: '#FF5252', fontSize: 14, textAlign: 'center' },
+    errorText: { color: '#FF5252', fontSize: 14, flex: 1 },
 
     emptyState: {
         backgroundColor: 'rgba(255,255,255,0.03)',
@@ -222,10 +239,19 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         borderWidth: 1,
         borderColor: 'rgba(255,255,255,0.07)',
-        borderStyle: 'dashed',
         marginTop: 20,
     },
-    emptyIcon: { fontSize: 56, marginBottom: 16 },
+    emptyIconWrap: {
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        backgroundColor: 'rgba(0,230,118,0.08)',
+        borderWidth: 1,
+        borderColor: 'rgba(0,230,118,0.15)',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: 20,
+    },
     emptyTitle: { fontSize: 20, fontWeight: '700', color: '#FFF', marginBottom: 8 },
     emptyText: {
         color: '#555', fontSize: 14, textAlign: 'center',
@@ -242,9 +268,7 @@ const styles = StyleSheet.create({
         paddingVertical: 15,
         minWidth: 220,
     },
-    generateBtnActive: {
-        backgroundColor: 'rgba(0,230,118,0.85)',
-    },
+    generateBtnActive: { backgroundColor: 'rgba(0,230,118,0.85)' },
     generateBtnText: {
         color: '#000',
         fontSize: 15,

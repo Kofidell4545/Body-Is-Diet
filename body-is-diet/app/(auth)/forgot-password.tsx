@@ -63,7 +63,7 @@ export default function ForgotPassword() {
                             {/* Icon */}
                             <View style={styles.iconWrap}>
                                 <View style={styles.iconCircle}>
-                                    <Text style={styles.iconEmoji}>🔑</Text>
+                                    <Ionicons name="key-outline" size={40} color="#00E676" />
                                 </View>
                             </View>
 
@@ -165,7 +165,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
     },
-    iconEmoji: { fontSize: 40 },
     title: {
         fontSize: 32,
         fontWeight: '800',

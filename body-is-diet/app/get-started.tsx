@@ -2,6 +2,7 @@ import { View, Text, StyleSheet, SafeAreaView, Dimensions } from 'react-native';
 import { router } from 'expo-router';
 import { useEffect, useRef } from 'react';
 import { Animated } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { PrimaryButton, SecondaryButton } from '../components/ui';
 
 const { height } = Dimensions.get('window');
@@ -25,7 +26,7 @@ export default function GetStarted() {
                 <View style={styles.circle1} />
                 <View style={styles.circle2} />
                 <View style={styles.circle3} />
-                <Text style={styles.emoji}>🥗</Text>
+                <Ionicons name="restaurant-outline" size={72} color="#00E676" />
             </View>
 
             {/* Content */}
@@ -56,7 +57,7 @@ const styles = StyleSheet.create({
     circle1: { position: 'absolute', width: 300, height: 300, borderRadius: 150, backgroundColor: '#00E67615', top: height * 0.05 },
     circle2: { position: 'absolute', width: 200, height: 200, borderRadius: 100, backgroundColor: '#00E67625', top: height * 0.08 },
     circle3: { position: 'absolute', width: 120, height: 120, borderRadius: 60, backgroundColor: '#00E67635', top: height * 0.1 },
-    emoji: { fontSize: 80, zIndex: 10 },
+    zIndex: 10,
     content: { paddingHorizontal: 28, paddingBottom: 48 },
     heading: { fontSize: 40, fontWeight: '800', color: '#FFF', lineHeight: 48, letterSpacing: -1, marginBottom: 16 },
     sub: { fontSize: 15, color: '#888', lineHeight: 22, marginBottom: 40 },

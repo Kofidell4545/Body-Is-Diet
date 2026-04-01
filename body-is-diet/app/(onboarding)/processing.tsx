@@ -1,6 +1,7 @@
 import {
     View, Text, StyleSheet, SafeAreaView, Animated,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useOnboarding } from '../../context/OnboardingContext';
 import { useRef, useEffect, useState } from 'react';
@@ -92,7 +93,7 @@ export default function ProcessingScreen() {
                     <Animated.View style={[styles.glowRing, { opacity: pulse }]} />
                     <Animated.View style={[styles.spinRing, { transform: [{ rotate: spinDeg }] }]} />
                     <View style={styles.centerCircle}>
-                        <Text style={styles.emoji}>🥗</Text>
+                        <Ionicons name="nutrition-outline" size={40} color="#00E676" />
                     </View>
                 </View>
 
@@ -145,7 +146,7 @@ const styles = StyleSheet.create({
         borderWidth: 1, borderColor: 'rgba(0,230,118,0.20)',
         alignItems: 'center', justifyContent: 'center',
     },
-    emoji: { fontSize: 40 },
+
 
     title: { fontSize: 28, fontWeight: '800', color: '#FFF', marginBottom: 16, letterSpacing: -0.5, textAlign: 'center' },
     message: { fontSize: 16, color: '#00E676', fontWeight: '500', textAlign: 'center', marginBottom: 12, minHeight: 24 },

@@ -105,7 +105,7 @@ function StatusCard({ analysis }: { analysis: ProgressAnalysis }) {
             <View style={cardStyles.header}>
                 <Ionicons name={icon as any} size={22} color={colour} />
                 <Text style={[cardStyles.title, { color: colour }]}>
-                    {analysis.on_track ? 'On Track 🎯' : 'Needs Attention'}
+                    {analysis.on_track ? 'On Track' : 'Needs Attention'}
                 </Text>
             </View>
             <Text style={cardStyles.message}>{analysis.status_message}</Text>
@@ -196,7 +196,7 @@ export default function LogScreen() {
             setBodyFatInput('');
             setNotesInput('');
             await load();
-            Alert.alert('✅ Weight logged!', `${weight}kg recorded.`);
+            Alert.alert('Weight logged', `${weight}kg recorded successfully.`);
         } catch (err: any) {
             Alert.alert('Error', err?.response?.data?.message || 'Could not log weight');
         } finally {
