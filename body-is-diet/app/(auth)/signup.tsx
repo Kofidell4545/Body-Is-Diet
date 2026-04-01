@@ -52,7 +52,7 @@ export default function Signup() {
     setLoading(true);
     try {
       await authApi.register(name.trim(), email.trim(), password);
-      signIn();
+      signIn(name.trim());
       router.replace('/(onboarding)/goal');
     } catch (e: any) {
       const msg = e?.response?.data?.message || e?.message || 'Registration failed. Please try again.';
