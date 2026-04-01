@@ -102,7 +102,7 @@ export const generateMealPlan = async (req: AuthRequest, res: Response): Promise
         id: planId,
         week_start: weekStart,
         tdee: tdeeResult.tdee,
-        target_calories: tdeeResult.targetCalories,
+        target_calories: effectiveTargetCalories,
         macro_targets: tdeeResult.macroSplit,
         items: items.map(i => ({ ...i, is_completed: !!i.is_completed })),
       },

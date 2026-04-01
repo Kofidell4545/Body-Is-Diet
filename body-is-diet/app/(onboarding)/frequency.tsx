@@ -7,10 +7,10 @@ import { useOnboarding } from '../../context/OnboardingContext';
 import { useRef, useEffect } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 
-const OPTIONS: { value: number; label: string; desc: string }[] = [
-    { value: 3, label: '3 meals a day', desc: 'Breakfast • Lunch • Dinner' },
-    { value: 4, label: '4 meals a day', desc: 'Breakfast • Lunch • Snack • Dinner' },
-    { value: 5, label: '2 mains + snack', desc: 'Breakfast • Dinner • Snack' },
+const OPTIONS: { value: number; label: string; desc: string; displayCount: number }[] = [
+    { value: 3, label: '3 meals a day', desc: 'Breakfast • Lunch • Dinner', displayCount: 3 },
+    { value: 4, label: '4 meals a day', desc: 'Breakfast • Lunch • Snack • Dinner', displayCount: 4 },
+    { value: 5, label: '2 mains + snack', desc: 'Breakfast • Dinner • Snack', displayCount: 3 },
 ];
 
 export default function FrequencyScreen() {
@@ -50,7 +50,7 @@ export default function FrequencyScreen() {
                                 activeOpacity={0.8}
                             >
                                 <View style={[styles.badge, active && styles.badgeActive]}>
-                                    <Text style={[styles.badgeNum, active && styles.badgeNumActive]}>{o.value}</Text>
+                                    <Text style={[styles.badgeNum, active && styles.badgeNumActive]}>{o.displayCount}</Text>
                                 </View>
                                 <View style={styles.cardText}>
                                     <Text style={[styles.cardLabel, active && styles.cardLabelActive]}>{o.label}</Text>
