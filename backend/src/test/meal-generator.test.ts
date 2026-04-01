@@ -1,5 +1,6 @@
 import { generateWeeklyPlan, findAlternativeFood } from '../utils/meal-generator';
 import { GHANAIAN_FOODS } from '../data/ghanaian-foods';
+import { ALL_FOODS, FOOD_DB_STATS } from '../data/all-foods';
 
 describe('generateWeeklyPlan', () => {
     const prefs = {
@@ -202,5 +203,58 @@ describe('findAlternativeFood', () => {
         // Use a food with very low target calories — unlikely to match anything
         const alt = findAlternativeFood('sn-banana', 'lunch', 1, [], prefs);
         expect(alt).toBeNull();
+    });
+});
+
+describe('ALL_FOODS unified database', () => {
+    it('merges curated and FAO foods without duplicates', () => {
+        // ALL_FOODS should be larger than just GHANAIAN_FOODS
+        expect(ALL_FOODS.length).toBeGreaterThan(GHANAIAN_FOODS.length);
+        // Should have 500+ foods total
+        expect(ALL_FOODS.length).toBeGreaterThan(500);
+
+        // No duplicate IDs
+        const ids = ALL_FOODS.map(f => f.id);
+        const uniqueIds = new Set(ids);
+        expect(uniqueIds.size).toBe(ids.length);
+    });
+
+    it('curated foods appear first in the pool', () => {
+        // First food should be from curated set
+        expect(ALL_FOODS[0].id).toBe(GHANAIAN_FOODS[0].id);
+    });
+
+    it('FAO foods have required fields', () => {
+        const faoFoods = ALL_FOODS.filter(f => f.fao_code);
+        expect(faoFoods.length).toBeGreaterThan(0);
+        for (const food of faoFoods.slice(0, 50)) {
+            expect(food.calories_per_serving).toBeGreaterThan(0);
+            expect(food.protein_g).toBeGreaterThanOrEqual(0);
+            expect(food.carbs_g).toBeGreaterThanOrEqual(0);
+            expect(food.fats_g).toBeGreaterThanOrEqual(0);
+            expect(food.tags.length).toBeGreaterThan(0);
+            expect(food.category).toBeTruthy();
+        }
+    });
+
+    it('generates plans with the full food pool', () => {
+        const prefs = {
+            proteins: ['Chicken', 'Fish'],
+            carbs: ['Rice', 'Yam'],
+            favorite_meals: [],
+            avoid_foods: [],
+            meals_per_day: 3,
+        };
+        const items = generateWeeklyPlan(prefs, 2200, ALL_FOODS);
+        expect(items.length).toBe(21); // 3 meals * 7 days
+        // Verify variety — with 800+ foods, we should see many unique foods
+        const uniqueFoods = new Set(items.map(i => i.food_id));
+        expect(uniqueFoods.size).toBeGreaterThan(10);
+    });
+
+    it('reports correct stats', () => {
+        expect(FOOD_DB_STATS.curated).toBe(GHANAIAN_FOODS.length);
+        expect(FOOD_DB_STATS.total).toBe(ALL_FOODS.length);
+        expect(FOOD_DB_STATS.fao).toBeGreaterThan(0);
     });
 });

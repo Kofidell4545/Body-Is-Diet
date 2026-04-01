@@ -6,7 +6,7 @@ import { z } from 'zod';
 import crypto from 'crypto';
 import { calculateTDEE, TDEEInput } from '../utils/tdee';
 import { generateWeeklyPlan, findAlternativeFood } from '../utils/meal-generator';
-import { GHANAIAN_FOODS } from '../data/ghanaian-foods';
+import { ALL_FOODS } from '../data/all-foods';
 
 function getMonday(dateStr?: string): string {
   const d = dateStr ? new Date(dateStr) : new Date();
@@ -48,6 +48,16 @@ export const generateMealPlan = async (req: AuthRequest, res: Response): Promise
 
     const tdeeResult = calculateTDEE(tdeeInput);
 
+    // Check for an active calorie adjustment (from adaptive algorithm)
+    const [latestAdj] = await db.query(sql`
+      SELECT adjusted_target FROM calorie_adjustments
+      WHERE user_id = ${userId}
+      ORDER BY created_at DESC
+      LIMIT 1
+    `);
+    // Use adjusted target if available, otherwise use TDEE-calculated target
+    const effectiveTargetCalories = latestAdj?.adjusted_target ?? tdeeResult.targetCalories;
+
     // Delete existing plan for this week if any
     const existing = await db.query(sql`SELECT id FROM meal_plans WHERE user_id = ${userId} AND week_start = ${weekStart}`);
     if (existing.length > 0) {
@@ -64,13 +74,13 @@ export const generateMealPlan = async (req: AuthRequest, res: Response): Promise
       meals_per_day: pref.meals_per_day,
     };
 
-    const generatedItems = generateWeeklyPlan(userPrefs, tdeeResult.targetCalories, GHANAIAN_FOODS);
+    const generatedItems = generateWeeklyPlan(userPrefs, effectiveTargetCalories, ALL_FOODS);
 
     // Store the plan
     const planId = crypto.randomUUID();
     await db.query(sql`
       INSERT INTO meal_plans (id, user_id, week_start, tdee, target_calories)
-      VALUES (${planId}, ${userId}, ${weekStart}, ${tdeeResult.tdee}, ${tdeeResult.targetCalories})
+      VALUES (${planId}, ${userId}, ${weekStart}, ${tdeeResult.tdee}, ${effectiveTargetCalories})
     `);
 
     for (const item of generatedItems) {
@@ -196,14 +206,14 @@ export const swapMeal = async (req: AuthRequest, res: Response): Promise<void> =
 
     let newFood;
     if (new_food_id) {
-      newFood = GHANAIAN_FOODS.find(f => f.id === new_food_id);
+      newFood = ALL_FOODS.find(f => f.id === new_food_id);
       if (!newFood) { res.status(404).json({ message: 'Food not found' }); return; }
     } else {
       newFood = findAlternativeFood(
         oldItem.food_id,
         oldItem.meal_slot,
         oldItem.calories,
-        GHANAIAN_FOODS,
+        ALL_FOODS,
         userPrefs,
       );
       if (!newFood) { res.status(400).json({ message: 'No alternatives available' }); return; }

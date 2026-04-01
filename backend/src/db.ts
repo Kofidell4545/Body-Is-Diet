@@ -110,6 +110,39 @@ async function bootstrap() {
     )
   `);
 
+  // Weight logging — user logs weight weekly/daily
+  await db.query(sql`
+    CREATE TABLE IF NOT EXISTS weight_logs (
+      id          TEXT PRIMARY KEY,
+      user_id     TEXT NOT NULL,
+      weight_kg   REAL NOT NULL,
+      body_fat_pct REAL,              -- optional body fat % reading
+      notes       TEXT,               -- e.g. "felt bloated", "post-workout"
+      logged_at   TEXT NOT NULL DEFAULT (datetime('now')),
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )
+  `);
+
+  // Calorie adjustments — tracks adaptive changes to the user's calorie target over time
+  await db.query(sql`
+    CREATE TABLE IF NOT EXISTS calorie_adjustments (
+      id                    TEXT PRIMARY KEY,
+      user_id               TEXT NOT NULL,
+      week_start            TEXT NOT NULL,         -- Monday of the week this applies to
+      base_tdee             REAL NOT NULL,          -- TDEE before adjustment
+      adjustment_kcal       REAL NOT NULL DEFAULT 0, -- +/- calories added
+      adjusted_target       REAL NOT NULL,          -- base_tdee + adjustment_kcal
+      reason                TEXT,                   -- e.g. "gaining_too_slow", "on_track"
+      weight_start_kg       REAL,                   -- weight at start of previous week
+      weight_end_kg         REAL,                   -- weight at end of previous week
+      expected_change_kg    REAL,                   -- what we expected
+      actual_change_kg      REAL,                   -- what actually happened
+      created_at            TEXT NOT NULL DEFAULT (datetime('now')),
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+      UNIQUE (user_id, week_start)
+    )
+  `);
+
   await seedFoods(db);
 
   console.log(`[DB] Connected → ${DB_PATH}`);

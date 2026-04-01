@@ -3,7 +3,7 @@ import { sql } from '../db';
 export interface FoodItem {
   id: string;
   name: string;
-  category: 'protein' | 'carb' | 'full_meal' | 'snack' | 'soup' | 'stew' | 'vegetable';
+  category: 'protein' | 'carb' | 'full_meal' | 'snack' | 'soup' | 'stew' | 'vegetable' | 'fruit' | 'beverage';
   calories_per_serving: number;
   protein_g: number;
   carbs_g: number;
@@ -17,6 +17,16 @@ export interface FoodItem {
   region?: string[];
   cost_tier?: 'budget' | 'moderate' | 'premium';
   pairs_with?: string[];
+  food_family?: string;
+  fao_code?: string;
+  // Micronutrients (per serving)
+  fiber_g?: number;
+  calcium_mg?: number;
+  iron_mg?: number;
+  zinc_mg?: number;
+  vitamin_a_mcg?: number;
+  vitamin_c_mg?: number;
+  folate_mcg?: number;
 }
 
 export const GHANAIAN_FOODS: FoodItem[] = [

@@ -103,9 +103,44 @@ export async function createSchema(db: Db) {
             FOREIGN KEY (food_id) REFERENCES foods(id)
         )
     `);
-}
+
+    // Weight logs — user progress tracking
+    await db.query(sql`
+        CREATE TABLE IF NOT EXISTS weight_logs (
+            id           TEXT PRIMARY KEY,
+            user_id      TEXT NOT NULL,
+            weight_kg    REAL NOT NULL,
+            body_fat_pct REAL,
+            notes        TEXT,
+            logged_at    TEXT NOT NULL DEFAULT (datetime('now')),
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        )
+    `);
+
+    // Adaptive calorie adjustments
+    await db.query(sql`
+        CREATE TABLE IF NOT EXISTS calorie_adjustments (
+            id                 TEXT PRIMARY KEY,
+            user_id            TEXT NOT NULL,
+            week_start         TEXT NOT NULL,
+            base_tdee          REAL NOT NULL,
+            adjustment_kcal    REAL NOT NULL DEFAULT 0,
+            adjusted_target    REAL NOT NULL,
+            reason             TEXT,
+            weight_start_kg    REAL,
+            weight_end_kg      REAL,
+            expected_change_kg REAL,
+            actual_change_kg   REAL,
+            created_at         TEXT NOT NULL DEFAULT (datetime('now')),
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+            UNIQUE (user_id, week_start)
+        )
+    `);
+} // end createSchema
 
 export async function clearTables(db: Db) {
+    await db.query(sql`DELETE FROM weight_logs`);
+    await db.query(sql`DELETE FROM calorie_adjustments`);
     await db.query(sql`DELETE FROM meal_plan_items`);
     await db.query(sql`DELETE FROM meal_plans`);
     await db.query(sql`DELETE FROM foods`);
