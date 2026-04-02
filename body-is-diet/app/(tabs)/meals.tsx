@@ -1,5 +1,6 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { useEffect } from 'react';
 import { useMealPlan } from '../../context/MealPlanContext';
 import DayTabBar from '../../components/DayTabBar';
@@ -30,23 +31,27 @@ export default function Meals() {
 
                 {error && (
                     <View style={styles.errorCard}>
+                        <Ionicons name="alert-circle-outline" size={16} color="#FF5252" style={{ marginRight: 8 }} />
                         <Text style={styles.errorText}>{error}</Text>
                     </View>
                 )}
 
                 {!isLoading && !weekPlan && (
                     <View style={styles.emptyState}>
-                        <Text style={styles.emptyIcon}>📋</Text>
+                        <View style={styles.emptyIconWrap}>
+                            <Ionicons name="calendar-outline" size={40} color="#00E676" />
+                        </View>
                         <Text style={styles.emptyTitle}>No Plan This Week</Text>
                         <Text style={styles.emptyText}>
-                            Generate a weekly meal plan tailored to your Ghanaian food preferences.
+                            Build a weekly menu tailored to your Ghanaian food preferences and goals.
                         </Text>
                         <TouchableOpacity
                             style={styles.generateBtn}
                             onPress={() => generatePlan()}
                             activeOpacity={0.8}
                         >
-                            <Text style={styles.generateBtnText}>Generate Meal Plan</Text>
+                            <Ionicons name="nutrition-outline" size={18} color="#000" style={{ marginRight: 8 }} />
+                            <Text style={styles.generateBtnText}>Build My Plan</Text>
                         </TouchableOpacity>
                     </View>
                 )}
@@ -84,7 +89,8 @@ export default function Meals() {
                             onPress={() => generatePlan()}
                             activeOpacity={0.7}
                         >
-                            <Text style={styles.regenBtnText}>Regenerate This Week</Text>
+                            <Ionicons name="refresh-outline" size={16} color="#555" style={{ marginRight: 8 }} />
+                            <Text style={styles.regenBtnText}>Rebuild This Week</Text>
                         </TouchableOpacity>
                     </>
                 )}
@@ -96,48 +102,68 @@ export default function Meals() {
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#0A0A0A' },
     scroll: { padding: 24, paddingBottom: 120 },
-    title: { fontSize: 32, fontWeight: '800', color: '#FFF', letterSpacing: -0.5, marginBottom: 8 },
+    title: { fontSize: 32, fontWeight: '800', color: '#FFF', letterSpacing: -0.5, marginBottom: 20 },
+
     loadingWrap: { alignItems: 'center', paddingVertical: 60 },
     loadingText: { color: '#555', marginTop: 12, fontSize: 14 },
+
     errorCard: {
-        backgroundColor: 'rgba(255,82,82,0.1)',
-        borderRadius: 12,
-        padding: 16,
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'rgba(255,82,82,0.08)',
+        borderRadius: 14,
+        padding: 14,
         marginBottom: 16,
         borderWidth: 1,
-        borderColor: 'rgba(255,82,82,0.2)',
+        borderColor: 'rgba(255,82,82,0.18)',
     },
-    errorText: { color: '#FF5252', fontSize: 14, textAlign: 'center' },
+    errorText: { color: '#FF5252', fontSize: 14, flex: 1 },
+
     emptyState: {
-        backgroundColor: '#0F0F0F',
-        borderRadius: 20,
+        backgroundColor: 'rgba(255,255,255,0.03)',
+        borderRadius: 24,
         padding: 40,
         alignItems: 'center',
         borderWidth: 1,
-        borderColor: '#1A1A1A',
-        borderStyle: 'dashed',
-        marginTop: 40,
+        borderColor: 'rgba(255,255,255,0.07)',
+        marginTop: 20,
     },
-    emptyIcon: { fontSize: 56, marginBottom: 16 },
+    emptyIconWrap: {
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        backgroundColor: 'rgba(0,230,118,0.08)',
+        borderWidth: 1,
+        borderColor: 'rgba(0,230,118,0.15)',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: 20,
+    },
     emptyTitle: { fontSize: 20, fontWeight: '700', color: '#FFF', marginBottom: 8 },
     emptyText: { color: '#555', fontSize: 14, textAlign: 'center', lineHeight: 22, marginBottom: 24 },
     generateBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
         backgroundColor: '#00E676',
-        borderRadius: 14,
+        borderRadius: 16,
         paddingHorizontal: 28,
         paddingVertical: 14,
     },
-    generateBtnText: { color: '#000', fontSize: 16, fontWeight: '700' },
+    generateBtnText: { color: '#000', fontSize: 15, fontWeight: '800' },
+
     sectionTitle: { fontSize: 18, fontWeight: '700', color: '#FFF', marginBottom: 16 },
     noMeals: { color: '#555', fontSize: 14, textAlign: 'center', paddingVertical: 20 },
+
     regenBtn: {
-        backgroundColor: '#111',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: 'rgba(255,255,255,0.04)',
         borderRadius: 14,
         paddingVertical: 14,
-        alignItems: 'center',
         marginTop: 16,
         borderWidth: 1,
-        borderColor: '#1C1C1C',
+        borderColor: 'rgba(255,255,255,0.07)',
     },
-    regenBtnText: { color: '#888', fontSize: 14, fontWeight: '600' },
+    regenBtnText: { color: '#555', fontSize: 14, fontWeight: '600' },
 });

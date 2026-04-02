@@ -47,8 +47,8 @@ export default function Login() {
 
     setLoading(true);
     try {
-      await authApi.login(email, password);
-      signIn();
+      const result = await authApi.login(email, password);
+      signIn(result?.user?.name);
       
       // Check if user has completed onboarding
       try {

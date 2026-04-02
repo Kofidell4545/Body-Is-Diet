@@ -1,10 +1,11 @@
 import { createContext, useContext, useEffect, useState } from 'react';
-import { getAccessToken, clearTokens } from '../services/api';
+import { getAccessToken, clearTokens, getUserName, saveUserName } from '../services/api';
 
 type AuthContextType = {
     isAuthenticated: boolean;
     isLoading: boolean;
-    signIn: () => void;
+    userName: string | null;
+    signIn: (name?: string) => void;
     signOut: () => Promise<void>;
 };
 
@@ -33,22 +34,24 @@ function isTokenValid(token: string): boolean {
 export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
+    const [userName, setUserName] = useState<string | null>(null);
 
     useEffect(() => {
         let isMounted = true;
 
         async function checkAuth() {
             try {
-                const token = await getAccessToken();
+                const [token, name] = await Promise.all([getAccessToken(), getUserName()]);
                 const valid = !!token && isTokenValid(token);
 
-                // If a token exists but has expired, wipe it so the user
-                // is correctly shown the login screen on next boot
                 if (token && !valid) {
                     await clearTokens();
                 }
 
-                if (isMounted) setIsAuthenticated(valid);
+                if (isMounted) {
+                    setIsAuthenticated(valid);
+                    setUserName(valid ? name : null);
+                }
             } catch (error) {
                 console.error('Failed to check auth:', error);
                 if (isMounted) setIsAuthenticated(false);
@@ -61,15 +64,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return () => { isMounted = false; };
     }, []);
 
-    const signIn = () => setIsAuthenticated(true);
+    const signIn = (name?: string) => {
+        setIsAuthenticated(true);
+        if (name) {
+            setUserName(name);
+            saveUserName(name);
+        }
+    };
 
     const signOut = async () => {
         await clearTokens();
         setIsAuthenticated(false);
+        setUserName(null);
     };
 
     return (
-        <AuthContext.Provider value={{ isAuthenticated, isLoading, signIn, signOut }}>
+        <AuthContext.Provider value={{ isAuthenticated, isLoading, userName, signIn, signOut }}>
             {children}
         </AuthContext.Provider>
     );
