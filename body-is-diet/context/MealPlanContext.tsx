@@ -24,8 +24,19 @@ export function useMealPlan() {
     return context;
 }
 
+const SLOT_ORDER: Record<string, number> = {
+    breakfast: 0,
+    lunch: 1,
+    snack: 2,
+    snack_1: 2,
+    snack_2: 3,
+    dinner: 4,
+};
+
 function buildDayPlan(items: MealPlanItem[], dayOfWeek: number): DayPlan {
-    const meals = items.filter(i => i.day_of_week === dayOfWeek);
+    const meals = items
+        .filter(i => i.day_of_week === dayOfWeek)
+        .sort((a, b) => (SLOT_ORDER[a.meal_slot] ?? 9) - (SLOT_ORDER[b.meal_slot] ?? 9));
     return {
         day_of_week: dayOfWeek,
         meals,

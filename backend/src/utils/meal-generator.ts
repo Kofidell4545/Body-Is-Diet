@@ -223,15 +223,38 @@ function pickFoodForSlot(
   // - same food ID used today
   // - same food FAMILY used today (e.g. two waakye dishes)
   // - foods used 3+ times this week
+  // - foods eaten the previous day (hard-excluded first, relaxed below as fallback)
   let candidates = foods.filter(f =>
     !currentDayFoodIds.has(f.id) &&
+    !previousDayFoodIds.has(f.id) &&
     !_dayFamilies.has(getFoodFamily(f)) &&
     (_weekFoodCounts.get(f.id) || 0) < 3 &&
     matchesSlotTags(f, slot) && matchesUserPrefs(f, prefs)
   );
 
   if (candidates.length === 0) {
-    // Fallback: relax slot tags but still respect family + weekly limits
+    // Relax slot tags but keep previous-day + family + weekly exclusions
+    candidates = foods.filter(f =>
+      !currentDayFoodIds.has(f.id) &&
+      !previousDayFoodIds.has(f.id) &&
+      !_dayFamilies.has(getFoodFamily(f)) &&
+      (_weekFoodCounts.get(f.id) || 0) < 3 &&
+      matchesUserPrefs(f, prefs)
+    );
+  }
+
+  if (candidates.length === 0) {
+    // Allow previous-day repeats (penalised by score), keep family + weekly limits
+    candidates = foods.filter(f =>
+      !currentDayFoodIds.has(f.id) &&
+      !_dayFamilies.has(getFoodFamily(f)) &&
+      (_weekFoodCounts.get(f.id) || 0) < 3 &&
+      matchesSlotTags(f, slot) && matchesUserPrefs(f, prefs)
+    );
+  }
+
+  if (candidates.length === 0) {
+    // Relax slot tags + allow previous-day repeats
     candidates = foods.filter(f =>
       !currentDayFoodIds.has(f.id) &&
       !_dayFamilies.has(getFoodFamily(f)) &&
@@ -241,7 +264,7 @@ function pickFoodForSlot(
   }
 
   if (candidates.length === 0) {
-    // Last resort: allow family repeats but no exact same food
+    // Last resort: allow family repeats but no exact same food today
     candidates = foods.filter(f => !currentDayFoodIds.has(f.id) && matchesUserPrefs(f, prefs));
   }
 

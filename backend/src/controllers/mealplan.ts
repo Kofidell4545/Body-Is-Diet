@@ -93,7 +93,16 @@ export const generateMealPlan = async (req: AuthRequest, res: Response): Promise
 
     // Return the full plan
     const items = await db.query(sql`
-      SELECT * FROM meal_plan_items WHERE meal_plan_id = ${planId} ORDER BY day_of_week, meal_slot
+      SELECT * FROM meal_plan_items WHERE meal_plan_id = ${planId}
+      ORDER BY day_of_week,
+        CASE meal_slot
+          WHEN 'breakfast' THEN 0
+          WHEN 'lunch'     THEN 1
+          WHEN 'snack_1'   THEN 2
+          WHEN 'snack_2'   THEN 3
+          WHEN 'dinner'    THEN 4
+          ELSE 9
+        END
     `);
 
     res.json({
@@ -145,7 +154,16 @@ export const getMealPlan = async (req: AuthRequest, res: Response): Promise<void
     });
 
     const items = await db.query(sql`
-      SELECT * FROM meal_plan_items WHERE meal_plan_id = ${plan.id} ORDER BY day_of_week, meal_slot
+      SELECT * FROM meal_plan_items WHERE meal_plan_id = ${plan.id}
+      ORDER BY day_of_week,
+        CASE meal_slot
+          WHEN 'breakfast' THEN 0
+          WHEN 'lunch'     THEN 1
+          WHEN 'snack_1'   THEN 2
+          WHEN 'snack_2'   THEN 3
+          WHEN 'dinner'    THEN 4
+          ELSE 9
+        END
     `);
 
     res.json({
