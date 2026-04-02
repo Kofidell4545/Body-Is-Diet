@@ -11,18 +11,19 @@ type Tab = {
     label: string;
     icon: keyof typeof Ionicons.glyphMap;
     iconFocused: keyof typeof Ionicons.glyphMap;
-    isCenter?: boolean;
 };
 
-const TABS: Tab[] = [
-    { name: 'index',    label: 'Home',    icon: 'home-outline',        iconFocused: 'home'              },
-    { name: 'meals',    label: 'Meals',   icon: 'nutrition-outline',   iconFocused: 'nutrition'         },
-    { name: 'log',      label: 'Track',   icon: 'add',                 iconFocused: 'add', isCenter: true },
-    { name: 'shopping', label: 'Shop',    icon: 'cart-outline',        iconFocused: 'cart'              },
-    { name: 'profile',  label: 'Profile', icon: 'person-circle-outline', iconFocused: 'person-circle'  },
+// Left pair and right pair — 2 tabs each side of the center button
+const LEFT_TABS: Tab[] = [
+    { name: 'index', label: 'Home',  icon: 'home-outline', iconFocused: 'home' },
+    { name: 'meals', label: 'Meals', icon: 'leaf-outline',  iconFocused: 'leaf' },
+];
+const RIGHT_TABS: Tab[] = [
+    { name: 'shopping', label: 'Shop',    icon: 'cart-outline',           iconFocused: 'cart'          },
+    { name: 'profile',  label: 'Profile', icon: 'person-circle-outline',  iconFocused: 'person-circle' },
 ];
 
-//  Regular pill tab 
+// ── Regular pill tab ──────────────────────────────────────────────────────────
 function RegularTab({ tab, isActive, onPress }: { tab: Tab; isActive: boolean; onPress: () => void }) {
     const expand   = useRef(new Animated.Value(isActive ? 1 : 0)).current;
     const labelOpa = useRef(new Animated.Value(isActive ? 1 : 0)).current;
@@ -32,8 +33,8 @@ function RegularTab({ tab, isActive, onPress }: { tab: Tab; isActive: boolean; o
             Animated.spring(expand, {
                 toValue: isActive ? 1 : 0,
                 useNativeDriver: false,
-                tension: 100,
-                friction: 13,
+                tension: 120,
+                friction: 14,
             }),
             Animated.timing(labelOpa, {
                 toValue: isActive ? 1 : 0,
@@ -43,7 +44,8 @@ function RegularTab({ tab, isActive, onPress }: { tab: Tab; isActive: boolean; o
         ]).start();
     }, [isActive]);
 
-    const pillWidth = expand.interpolate({ inputRange: [0, 1], outputRange: [48, 108] });
+    // Inactive = 44px icon-only pill, Active = 100px pill with label
+    const pillWidth = expand.interpolate({ inputRange: [0, 1], outputRange: [44, 100] });
 
     return (
         <TouchableOpacity onPress={onPress} activeOpacity={0.75}>
@@ -53,9 +55,7 @@ function RegularTab({ tab, isActive, onPress }: { tab: Tab; isActive: boolean; o
                     tint="dark"
                     style={[styles.pill, isActive && styles.pillActive]}
                 >
-                    {/* Top specular line — only on active */}
                     {isActive && <View style={styles.pillTopShine} />}
-                    {/* Green ambient wash */}
                     {isActive && <View style={styles.pillGreenWash} />}
 
                     <View style={styles.pillContent}>
@@ -76,7 +76,7 @@ function RegularTab({ tab, isActive, onPress }: { tab: Tab; isActive: boolean; o
     );
 }
 
-//  Center floating track button 
+// ── Center floating track button ──────────────────────────────────────────────
 function CenterTrackBtn({ isActive, onPress }: { isActive: boolean; onPress: () => void }) {
     const scale  = useRef(new Animated.Value(1)).current;
     const rotate = useRef(new Animated.Value(isActive ? 1 : 0)).current;
@@ -92,8 +92,8 @@ function CenterTrackBtn({ isActive, onPress }: { isActive: boolean; onPress: () 
         ]).start();
     }, [isActive]);
 
-    const spin = rotate.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '45deg'] });
-    const haloOpacity = glow.interpolate({ inputRange: [0, 1], outputRange: [0, 1] });
+    const spin         = rotate.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '45deg'] });
+    const haloOpacity  = glow.interpolate({ inputRange: [0, 1], outputRange: [0, 1] });
 
     return (
         <TouchableOpacity
@@ -104,17 +104,14 @@ function CenterTrackBtn({ isActive, onPress }: { isActive: boolean; onPress: () 
             style={styles.centerWrapper}
         >
             <Animated.View style={{ transform: [{ scale }] }}>
-                {/* Outer ambient glow */}
                 <Animated.View style={[styles.halo, { opacity: haloOpacity }]} />
 
                 <BlurView intensity={80} tint="dark" style={styles.centerBlur}>
                     <View style={[styles.centerInner, isActive && styles.centerInnerActive]}>
-                        {/* Specular ellipse highlight */}
                         <View style={styles.centerShine} />
                         <Animated.View style={{ transform: [{ rotate: spin }] }}>
                             <Ionicons name="add" size={26} color={isActive ? '#000' : '#00E676'} />
                         </Animated.View>
-                        {/* Inner border ring */}
                         <View style={[styles.centerRing, isActive && styles.centerRingActive]} />
                     </View>
                 </BlurView>
@@ -124,7 +121,7 @@ function CenterTrackBtn({ isActive, onPress }: { isActive: boolean; onPress: () 
     );
 }
 
-//  Tab bar shell 
+// ── Tab bar shell ─────────────────────────────────────────────────────────────
 export default function LiquidTabBar() {
     const router   = useRouter();
     const segments = useSegments();
@@ -137,55 +134,71 @@ export default function LiquidTabBar() {
     const navigate = (name: string) =>
         router.navigate(`/(tabs)/${name === 'index' ? '' : name}` as never);
 
-    const regularTabs = TABS.filter(t => !t.isCenter);
-
     return (
         <View style={styles.wrapper} pointerEvents="box-none">
+            {/* Floating center button sits above the bar */}
             <CenterTrackBtn isActive={isActive('log')} onPress={() => navigate('log')} />
 
-            {/* Deep shadow beneath bar */}
             <View style={styles.barShadow} />
 
-            {/* Bar */}
             <BlurView intensity={72} tint="dark" style={styles.bar}>
-                {/* Layered glass surfaces */}
                 <View style={styles.barTopShine} />
                 <View style={styles.barTopShineSoft} />
                 <View style={styles.barBottomAccent} />
 
+                {/*
+                  Layout: [left group] [center spacer] [right group]
+                  Each group is flex:1 so they share space symmetrically.
+                  The spacer matches the center button footprint (64px) so
+                  neither group ever overflows or gets clipped.
+                */}
                 <View style={styles.innerRow}>
-                    {regularTabs.map((tab, i) => (
-                        <View key={tab.name} style={i === 2 ? { marginLeft: 56 } : undefined}>
+                    <View style={styles.tabGroup}>
+                        {LEFT_TABS.map(tab => (
                             <RegularTab
+                                key={tab.name}
                                 tab={tab}
                                 isActive={isActive(tab.name)}
                                 onPress={() => navigate(tab.name)}
                             />
-                        </View>
-                    ))}
+                        ))}
+                    </View>
+
+                    {/* Spacer under the floating center button */}
+                    <View style={styles.centerSpacer} />
+
+                    <View style={styles.tabGroup}>
+                        {RIGHT_TABS.map(tab => (
+                            <RegularTab
+                                key={tab.name}
+                                tab={tab}
+                                isActive={isActive(tab.name)}
+                                onPress={() => navigate(tab.name)}
+                            />
+                        ))}
+                    </View>
                 </View>
             </BlurView>
         </View>
     );
 }
 
-//  Styles 
+// ── Styles ────────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
     wrapper: {
         position: 'absolute',
         bottom: Platform.OS === 'ios' ? 28 : 16,
-        left: 12,
-        right: 12,
+        left: 16,
+        right: 16,
         zIndex: 999,
         alignItems: 'center',
     },
 
-    //  Bar 
+    // Bar
     barShadow: {
         position: 'absolute',
         bottom: 0, left: 8, right: 8, height: 64,
         borderRadius: 44,
-        backgroundColor: 'transparent',
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 16 },
         shadowOpacity: 0.72,
@@ -200,7 +213,7 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(8,8,8,0.78)',
     },
 
-    // Three stacked lines give the surface convincing depth
+    // Glass surface lines
     barTopShine: {
         position: 'absolute', top: 0, left: 20, right: 20,
         height: 1, backgroundColor: 'rgba(255,255,255,0.32)', zIndex: 4,
@@ -214,24 +227,33 @@ const styles = StyleSheet.create({
         height: 1, backgroundColor: 'rgba(0,230,118,0.10)', zIndex: 4,
     },
 
+    // Inner layout
     innerRow: {
         flexDirection: 'row',
         alignItems: 'center',
+        paddingHorizontal: 8,
+        paddingVertical: 10,
+    },
+    tabGroup: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
         justifyContent: 'space-around',
-        paddingHorizontal: 6,
-        paddingVertical: 11,
+    },
+    // Matches the center button width so both groups get equal flex space
+    centerSpacer: {
+        width: 64,
     },
 
-    //  Pill 
+    // Pill
     pill: {
-        height: 48,
+        height: 46,
         borderRadius: 28,
         overflow: 'hidden',
         justifyContent: 'center',
         alignItems: 'center',
         borderWidth: 1,
         borderColor: 'rgba(255,255,255,0.05)',
-        backgroundColor: 'transparent',
     },
     pillActive: {
         borderColor: 'rgba(0,230,118,0.22)',
@@ -247,16 +269,16 @@ const styles = StyleSheet.create({
     },
     pillContent: {
         flexDirection: 'row', alignItems: 'center', gap: 6,
-        paddingHorizontal: 12, zIndex: 2,
+        paddingHorizontal: 10, zIndex: 2,
     },
     pillLabel: {
         fontSize: 13, fontWeight: '700', color: '#00E676', letterSpacing: 0.1,
     },
 
-    //  Center button 
+    // Center button
     centerWrapper: {
         alignItems: 'center',
-        marginBottom: -24,
+        marginBottom: -22,
         zIndex: 10,
     },
     halo: {
@@ -296,7 +318,6 @@ const styles = StyleSheet.create({
         borderWidth: 1.5, borderColor: 'rgba(0,230,118,0.35)',
     },
     centerRingActive: { borderColor: 'rgba(255,255,255,0.18)' },
-
     centerLabel: {
         fontSize: 10, fontWeight: '600',
         color: 'rgba(255,255,255,0.28)', marginTop: 5,
