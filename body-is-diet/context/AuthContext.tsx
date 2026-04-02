@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from 'react';
-import { getAccessToken, clearTokens, getUserName, saveUserName } from '../services/api';
+import { getAccessToken, clearTokens } from '../services/api';
 
 type AuthContextType = {
     isAuthenticated: boolean;
@@ -17,17 +17,18 @@ export function useAuth() {
     return context;
 }
 
-/** Decode a JWT and check it hasn't expired — no library needed */
-function isTokenValid(token: string): boolean {
+interface TokenPayload { exp: number; userId: string; email: string; name?: string; }
+
+/** Decode a JWT — returns payload if valid and not expired, null otherwise */
+function decodeToken(token: string): TokenPayload | null {
     try {
         const parts = token.split('.');
-        if (parts.length !== 3) return false;
-        const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
-        if (!payload.exp) return false;
-        // exp is in seconds, Date.now() is in milliseconds
-        return payload.exp * 1000 > Date.now();
+        if (parts.length !== 3) return null;
+        const payload: TokenPayload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+        if (!payload.exp || payload.exp * 1000 <= Date.now()) return null;
+        return payload;
     } catch {
-        return false;
+        return null;
     }
 }
 
@@ -41,16 +42,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         async function checkAuth() {
             try {
-                const [token, name] = await Promise.all([getAccessToken(), getUserName()]);
-                const valid = !!token && isTokenValid(token);
+                const token = await getAccessToken();
+                const payload = token ? decodeToken(token) : null;
 
-                if (token && !valid) {
+                if (token && !payload) {
                     await clearTokens();
                 }
 
                 if (isMounted) {
-                    setIsAuthenticated(valid);
-                    setUserName(valid ? name : null);
+                    setIsAuthenticated(!!payload);
+                    setUserName(payload?.name ?? null);
                 }
             } catch (error) {
                 console.error('Failed to check auth:', error);
@@ -66,10 +67,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const signIn = (name?: string) => {
         setIsAuthenticated(true);
-        if (name) {
-            setUserName(name);
-            saveUserName(name);
-        }
+        if (name) setUserName(name);
     };
 
     const signOut = async () => {

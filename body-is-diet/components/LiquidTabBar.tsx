@@ -15,14 +15,14 @@ type Tab = {
 };
 
 const TABS: Tab[] = [
-    { name: 'index',    label: 'Home',    icon: 'home-outline',        iconFocused: 'home'         },
-    { name: 'meals',    label: 'Meals',   icon: 'restaurant-outline',  iconFocused: 'restaurant'   },
+    { name: 'index',    label: 'Home',    icon: 'home-outline',        iconFocused: 'home'              },
+    { name: 'meals',    label: 'Meals',   icon: 'nutrition-outline',   iconFocused: 'nutrition'         },
     { name: 'log',      label: 'Track',   icon: 'add',                 iconFocused: 'add', isCenter: true },
-    { name: 'shopping', label: 'Shop',    icon: 'bag-outline',         iconFocused: 'bag'          },
-    { name: 'profile',  label: 'Profile', icon: 'person-outline',      iconFocused: 'person'       },
+    { name: 'shopping', label: 'Shop',    icon: 'cart-outline',        iconFocused: 'cart'              },
+    { name: 'profile',  label: 'Profile', icon: 'person-circle-outline', iconFocused: 'person-circle'  },
 ];
 
-// ─── Regular pill tab ─────────────────────────────────────────────────────────
+//  Regular pill tab 
 function RegularTab({ tab, isActive, onPress }: { tab: Tab; isActive: boolean; onPress: () => void }) {
     const expand   = useRef(new Animated.Value(isActive ? 1 : 0)).current;
     const labelOpa = useRef(new Animated.Value(isActive ? 1 : 0)).current;
@@ -76,7 +76,7 @@ function RegularTab({ tab, isActive, onPress }: { tab: Tab; isActive: boolean; o
     );
 }
 
-// ─── Center floating track button ─────────────────────────────────────────────
+//  Center floating track button 
 function CenterTrackBtn({ isActive, onPress }: { isActive: boolean; onPress: () => void }) {
     const scale  = useRef(new Animated.Value(1)).current;
     const rotate = useRef(new Animated.Value(isActive ? 1 : 0)).current;
@@ -124,7 +124,7 @@ function CenterTrackBtn({ isActive, onPress }: { isActive: boolean; onPress: () 
     );
 }
 
-// ─── Tab bar shell ────────────────────────────────────────────────────────────
+//  Tab bar shell 
 export default function LiquidTabBar() {
     const router   = useRouter();
     const segments = useSegments();
@@ -169,7 +169,7 @@ export default function LiquidTabBar() {
     );
 }
 
-// ─── Styles ───────────────────────────────────────────────────────────────────
+//  Styles 
 const styles = StyleSheet.create({
     wrapper: {
         position: 'absolute',
@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
 
-    // ── Bar ──────────────────────────────────────────────────────────────────
+    //  Bar 
     barShadow: {
         position: 'absolute',
         bottom: 0, left: 8, right: 8, height: 64,
@@ -222,7 +222,7 @@ const styles = StyleSheet.create({
         paddingVertical: 11,
     },
 
-    // ── Pill ─────────────────────────────────────────────────────────────────
+    //  Pill 
     pill: {
         height: 48,
         borderRadius: 28,
@@ -253,7 +253,7 @@ const styles = StyleSheet.create({
         fontSize: 13, fontWeight: '700', color: '#00E676', letterSpacing: 0.1,
     },
 
-    // ── Center button ─────────────────────────────────────────────────────────
+    //  Center button 
     centerWrapper: {
         alignItems: 'center',
         marginBottom: -24,

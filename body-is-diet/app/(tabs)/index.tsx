@@ -10,7 +10,7 @@ import { useAuth } from '../../context/AuthContext';
 import DailySummaryCard from '../../components/DailySummaryCard';
 import MealCard from '../../components/MealCard';
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+//  Helpers 
 function getGreeting(): string {
     const h = new Date().getHours();
     if (h < 5)  return 'Up late';
@@ -24,7 +24,7 @@ function getFirstName(fullName: string | null): string {
     return fullName.trim().split(' ')[0];
 }
 
-// ─── Animated cycling button ──────────────────────────────────────────────────
+//  Animated cycling button 
 const IDLE_PHRASES = [
     'Craft my plate',
     'Nourish my week',
@@ -81,7 +81,7 @@ function CyclingPlanButton({ onPress, isGenerating }: { onPress: () => void; isG
     );
 }
 
-// ─── Screen ───────────────────────────────────────────────────────────────────
+//  Screen 
 export default function Home() {
     const { userName } = useAuth();
     const {
@@ -107,7 +107,7 @@ export default function Home() {
         <SafeAreaView style={styles.container}>
             <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
 
-                {/* ── Header ── */}
+                {/*  Header  */}
                 <View style={styles.header}>
                     <View style={styles.headerLeft}>
                         <Text style={styles.greeting}>{getGreeting()}</Text>
@@ -120,7 +120,7 @@ export default function Home() {
                     </View>
                 </View>
 
-                {/* ── Loading ── */}
+                {/*  Loading  */}
                 {isLoading && !weekPlan && (
                     <View style={styles.loadingWrap}>
                         <ActivityIndicator color="#00E676" size="large" />
@@ -128,7 +128,7 @@ export default function Home() {
                     </View>
                 )}
 
-                {/* ── Error ── */}
+                {/*  Error  */}
                 {error && (
                     <View style={styles.errorCard}>
                         <Ionicons name="alert-circle-outline" size={16} color="#FF5252" style={{ marginRight: 8 }} />
@@ -136,7 +136,7 @@ export default function Home() {
                     </View>
                 )}
 
-                {/* ── Empty state ── */}
+                {/*  Empty state  */}
                 {!isLoading && !weekPlan && (
                     <View style={styles.emptyState}>
                         <View style={styles.emptyIconWrap}>
@@ -150,7 +150,7 @@ export default function Home() {
                     </View>
                 )}
 
-                {/* ── Plan exists ── */}
+                {/*  Plan exists  */}
                 {weekPlan && todayPlan && (
                     <>
                         <DailySummaryCard
@@ -180,7 +180,7 @@ export default function Home() {
     );
 }
 
-// ─── Styles ───────────────────────────────────────────────────────────────────
+//  Styles 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#0A0A0A' },
     scroll: { padding: 24, paddingBottom: 120 },

@@ -57,7 +57,7 @@ export async function register(req: Request, res: Response): Promise<void> {
     await db.query(sql`INSERT INTO users (id, name, email, password) VALUES (${userId}, ${name}, ${email}, ${hashed})`);
 
     const [user] = await db.query(sql`SELECT * FROM users WHERE id = ${userId}`) as DbUser[];
-    const payload = { userId: user.id, email: user.email };
+    const payload = { userId: user.id, email: user.email, name: user.name };
     const accessToken = signAccessToken(payload);
     const refreshToken = signRefreshToken(payload);
     await db.query(sql`INSERT INTO refresh_tokens (id, token, user_id, expires_at) VALUES (${crypto.randomUUID()}, ${refreshToken}, ${userId}, ${refreshExpiry()})`);
@@ -76,7 +76,7 @@ export async function login(req: Request, res: Response): Promise<void> {
         res.status(401).json({ success: false, message: 'Invalid email or password' }); return;
     }
 
-    const payload = { userId: user.id, email: user.email };
+    const payload = { userId: user.id, email: user.email, name: user.name };
     const accessToken = signAccessToken(payload);
     const refreshToken = signRefreshToken(payload);
     await db.query(sql`INSERT INTO refresh_tokens (id, token, user_id, expires_at) VALUES (${crypto.randomUUID()}, ${refreshToken}, ${user.id}, ${refreshExpiry()})`);
@@ -89,7 +89,7 @@ export async function refresh(req: Request, res: Response): Promise<void> {
     const parsed = RefreshSchema.safeParse(req.body);
     if (!parsed.success) { res.status(400).json({ success: false, message: 'Refresh token required' }); return; }
 
-    let payload: { userId: string; email: string };
+    let payload: { userId: string; email: string; name: string };
     try { payload = verifyRefreshToken(parsed.data.refreshToken); }
     catch { res.status(401).json({ success: false, message: 'Invalid or expired refresh token' }); return; }
 
@@ -101,7 +101,7 @@ export async function refresh(req: Request, res: Response): Promise<void> {
     await db.query(sql`DELETE FROM refresh_tokens WHERE id = ${stored.id}`);
     // Destructure only what we need — the decoded payload includes iat/exp
     // which would conflict with the expiresIn option in jwt.sign()
-    const cleanPayload = { userId: payload.userId, email: payload.email };
+    const cleanPayload = { userId: payload.userId, email: payload.email, name: payload.name };
     const newAccessToken = signAccessToken(cleanPayload);
     const newRefreshToken = signRefreshToken(cleanPayload);
     await db.query(sql`INSERT INTO refresh_tokens (id, token, user_id, expires_at) VALUES (${crypto.randomUUID()}, ${newRefreshToken}, ${cleanPayload.userId}, ${refreshExpiry()})`);

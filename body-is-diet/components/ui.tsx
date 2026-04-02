@@ -1,6 +1,6 @@
 /**
  * Reusable UI Components — Body is Diet
- * ─────────────────────────────────────
+ * 
  * PrimaryButton     — green CTA (Log In, Sign Up, Next →)
  * SecondaryButton   — outline ghost button (I already have an account)
  * SocialAuthButton  — social login pill (Google / Apple)
@@ -24,7 +24,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 
-// ─── PrimaryButton ───────────────────────────────────────────────────────────
+//  PrimaryButton 
 type PrimaryButtonProps = {
     label: string;
     onPress: () => void;
@@ -49,7 +49,7 @@ export function PrimaryButton({ label, onPress, loading, disabled, style }: Prim
     );
 }
 
-// ─── SecondaryButton ─────────────────────────────────────────────────────────
+//  SecondaryButton 
 type SecondaryButtonProps = {
     label: string;
     onPress: () => void;
@@ -68,7 +68,7 @@ export function SecondaryButton({ label, onPress, style }: SecondaryButtonProps)
     );
 }
 
-// ─── SocialAuthButton ────────────────────────────────────────────────────────
+//  SocialAuthButton 
 type SocialAuthButtonProps = {
     provider: 'google' | 'apple';
     onPress?: () => void;
@@ -88,7 +88,7 @@ export function SocialAuthButton({ provider, onPress }: SocialAuthButtonProps) {
     );
 }
 
-// ─── SocialAuthRow ───────────────────────────────────────────────────────────
+//  SocialAuthRow 
 export function SocialAuthRow() {
     return (
         <View>
@@ -105,7 +105,7 @@ export function SocialAuthRow() {
     );
 }
 
-// ─── TextField ───────────────────────────────────────────────────────────────
+//  TextField 
 type TextFieldProps = TextInputProps & {
     label: string;
     icon: keyof typeof Ionicons.glyphMap;
@@ -131,7 +131,7 @@ export function TextField({ label, icon, error, rightElement, ...inputProps }: T
     );
 }
 
-// ─── ErrorBanner ─────────────────────────────────────────────────────────────
+//  ErrorBanner 
 export function ErrorBanner({ message }: { message: string }) {
     if (!message) return null;
     return (
@@ -142,7 +142,7 @@ export function ErrorBanner({ message }: { message: string }) {
     );
 }
 
-// ─── ScreenHeader ─────────────────────────────────────────────────────────────
+//  ScreenHeader 
 type ScreenHeaderProps = {
     title?: string;
     onBack?: () => void;
@@ -167,7 +167,7 @@ export function ScreenHeader({ title, onBack, style, titleStyle }: ScreenHeaderP
     );
 }
 
-// ─── Styles ──────────────────────────────────────────────────────────────────
+//  Styles 
 const styles = StyleSheet.create({
     /* PrimaryButton */
     primaryBtn: {

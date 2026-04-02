@@ -7,7 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { progressApi } from '../../services/api';
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+//  Types 
 interface WeightLog {
     id: string;
     weight_kg: number;
@@ -31,7 +31,7 @@ interface ProgressAnalysis {
     new_target_calories: number;
 }
 
-// ─── Weight Chart (simple bar chart) ─────────────────────────────────────────
+//  Weight Chart (simple bar chart) 
 function WeightChart({ logs }: { logs: WeightLog[] }) {
     if (logs.length < 2) return null;
 
@@ -79,7 +79,7 @@ function WeightChart({ logs }: { logs: WeightLog[] }) {
     );
 }
 
-// ─── Status Card ──────────────────────────────────────────────────────────────
+//  Status Card 
 function StatusCard({ analysis }: { analysis: ProgressAnalysis }) {
     const statusColour: Record<string, string> = {
         on_track: '#22C55E',
@@ -128,7 +128,7 @@ function StatusCard({ analysis }: { analysis: ProgressAnalysis }) {
     );
 }
 
-// ─── Stat Row ─────────────────────────────────────────────────────────────────
+//  Stat Row 
 function StatRow({ label, value, sub }: { label: string; value: string; sub?: string }) {
     return (
         <View style={statStyles.row}>
@@ -141,7 +141,7 @@ function StatRow({ label, value, sub }: { label: string; value: string; sub?: st
     );
 }
 
-// ─── Main Screen ──────────────────────────────────────────────────────────────
+//  Main Screen 
 export default function LogScreen() {
     const [logs, setLogs] = useState<WeightLog[]>([]);
     const [analysis, setAnalysis] = useState<ProgressAnalysis | null>(null);
@@ -383,7 +383,7 @@ export default function LogScreen() {
     );
 }
 
-// ─── Styles ───────────────────────────────────────────────────────────────────
+//  Styles 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#0A0A0A' },
     scroll: { padding: 20, paddingBottom: 100 },

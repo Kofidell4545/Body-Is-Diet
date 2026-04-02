@@ -16,6 +16,7 @@ const REFRESH_EXPIRY = (process.env.JWT_REFRESH_EXPIRY || '7d') as SignOptions['
 export interface JwtPayload {
     userId: string;
     email: string;
+    name: string;
 }
 
 export function signAccessToken(payload: JwtPayload): string {

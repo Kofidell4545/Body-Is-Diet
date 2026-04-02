@@ -3,7 +3,7 @@ import * as SecureStore from 'expo-secure-store';
 import { AuthResponse, AuthTokens, UserPreferences, WeeklyMealPlan, MealPlanItem } from '../types';
 
 
-// ── Config ────────────────────────────────────────────────────────────────────
+//  Config 
 export const API_URL = 'http://localhost:3000';
 
 const KEYS = {
@@ -13,7 +13,7 @@ const KEYS = {
     USER_NAME: 'bid_user_name',
 } as const;
 
-// ── Token helpers ─────────────────────────────────────────────────────────────
+//  Token helpers 
 export async function saveTokens(tokens: AuthTokens) {
     await SecureStore.setItemAsync(KEYS.ACCESS_TOKEN, tokens.accessToken);
     await SecureStore.setItemAsync(KEYS.REFRESH_TOKEN, tokens.refreshToken);
@@ -40,7 +40,7 @@ export async function getUserName(): Promise<string | null> {
     return SecureStore.getItemAsync(KEYS.USER_NAME);
 }
 
-// ── Onboarding helpers ────────────────────────────────────────────────────────
+//  Onboarding helpers 
 export async function markOnboardingComplete(): Promise<void> {
     await SecureStore.setItemAsync(KEYS.ONBOARDING_DONE, 'true');
 }
@@ -54,7 +54,7 @@ export async function clearOnboardingStatus(): Promise<void> {
     await SecureStore.deleteItemAsync(KEYS.ONBOARDING_DONE);
 }
 
-// ── Axios instance ────────────────────────────────────────────────────────────
+//  Axios instance 
 const api: AxiosInstance = axios.create({
     baseURL: `${API_URL}/api`,
     timeout: 10000,
@@ -127,7 +127,7 @@ api.interceptors.response.use(
     }
 );
 
-// ── Auth API calls ────────────────────────────────────────────────────────────
+//  Auth API calls 
 export const authApi = {
     async register(name: string, email: string, password: string): Promise<AuthResponse> {
         const { data } = await api.post('/auth/register', { name, email, password });
@@ -166,7 +166,7 @@ export const authApi = {
     },
 };
 
-// ── User API calls ────────────────────────────────────────────────────────────
+//  User API calls 
 export const userApi = {
     async getPreferences(): Promise<UserPreferences> {
         const { data } = await api.get('/user/preferences');
@@ -178,7 +178,7 @@ export const userApi = {
     },
 };
 
-// ── Meal Plan API calls ──────────────────────────────────────────────────────
+//  Meal Plan API calls 
 export const mealPlanApi = {
     async generate(weekStart?: string): Promise<WeeklyMealPlan> {
         const { data } = await api.post('/meal-plan/generate', { week_start: weekStart });
@@ -202,7 +202,7 @@ export const mealPlanApi = {
     },
 };
 
-// ── Progress API calls ───────────────────────────────────────────────────────
+//  Progress API calls 
 export const progressApi = {
     async logWeight(weight_kg: number, body_fat_pct?: number, notes?: string) {
         const { data } = await api.post('/progress/weight', { weight_kg, body_fat_pct, notes });
